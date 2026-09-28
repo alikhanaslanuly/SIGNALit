@@ -36,4 +36,8 @@ Do not put `onFrame` results into React state on every inference. Draw the landm
 
 To collect real data in Vite development mode, call `createDevFeatureRecorder(engine)`, then `capture(gesture, participantId)` while the pose is visible and `download()`. This exports hand features only, not camera images. Move the JSON into `tests/fixtures/` after checking consent and labels.
 
+Once the Vite app scaffold exists, run its dev server and open `/src/core/vision/dev/`. This development-only page shows the camera overlay, all six scores, accepted classification, hold progress, and measured inference FPS. Enter an anonymous participant code and capture several stable poses per gesture; download the JSON before closing the tab. The page is not included in a normal single-entry Vite production build.
+
+Call `setContext()` when the expected gesture set or training target changes. Repeating an unchanged context is safe and preserves an in-progress hold. An actual context change resets the hold so a gesture from a previous mode cannot confirm in a new one.
+
 The thresholds are initial heuristic values. They need tuning against real recordings from different people, lighting, cameras, and left/right hands. In particular, `palmFacing` estimates plane alignment and cannot prove that the palm rather than the back of the hand faces the camera.

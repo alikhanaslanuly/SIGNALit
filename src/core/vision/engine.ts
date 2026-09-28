@@ -272,7 +272,14 @@ export class VisionEngine implements Engine {
   }
 
   setContext(context: VisionContext): void {
-    this.context = { expected: context.expected ? [...context.expected] : undefined, target: context.target };
+    const expected = context.expected ? [...new Set(context.expected)] : undefined;
+    const previous = this.context;
+    const sameExpected = previous.expected === undefined
+      ? expected === undefined
+      : expected !== undefined && previous.expected.length === expected.length &&
+        previous.expected.every(gesture => expected.includes(gesture));
+    if (previous.target === context.target && sameExpected) return;
+    this.context = { expected, target: context.target };
     this.hold.reset();
   }
 
