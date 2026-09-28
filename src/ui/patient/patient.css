@@ -1,0 +1,85 @@
+.signal-patient {
+  --signal-ink: #173941;
+  --signal-accent: #127c7a;
+  --signal-deep: #123940;
+  --signal-paper: #f2f8f7;
+  --signal-muted: #587078;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background: var(--signal-paper);
+  color: var(--signal-ink);
+  font-family: "Segoe UI", "Arial", sans-serif;
+  padding: 0 clamp(18px, 4vw, 48px) 40px;
+}
+.signal-patient *, .signal-patient *::before, .signal-patient *::after { box-sizing: border-box; }
+.signal-patient button { font: inherit; cursor: pointer; }
+.signal-patient button:focus-visible { outline: 4px solid #d69b28; outline-offset: 3px; }
+.signal-header { max-width: 920px; margin: 0 auto; min-height: 84px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 2px solid #cddfdd; }
+.signal-brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: .045em; font-size: clamp(25px, 3vw, 34px); }
+.signal-brand__mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--signal-deep); color: #fff; font-size: 28px; line-height: 1; }
+.signal-controls { display: flex; align-items: center; gap: 12px; }
+.signal-languages { display: flex; border: 2px solid #b9d0cd; border-radius: 14px; overflow: hidden; }
+.signal-languages button { border: 0; background: transparent; color: var(--signal-ink); padding: 10px 13px; font-size: 15px; font-weight: 700; min-width: 49px; }
+.signal-languages button[aria-pressed="true"] { background: var(--signal-deep); color: #fff; }
+.signal-speech { border: 2px solid #b9d0cd; border-radius: 14px; background: transparent; color: var(--signal-ink); min-width: 50px; min-height: 45px; font-size: 21px !important; }
+.signal-intro, .signal-results { max-width: 740px; margin: clamp(30px, 7vh, 80px) auto 0; text-align: center; }
+.signal-intro__symbol { width: clamp(126px, 19vw, 180px); height: clamp(126px, 19vw, 180px); margin: 0 auto 28px; display: grid; place-items: center; border-radius: 50%; background: #d4ebe7; color: var(--signal-accent); font-size: clamp(70px, 11vw, 100px); line-height: 1; }
+.signal-intro h1 { font-size: clamp(36px, 5vw, 60px); line-height: 1.08; letter-spacing: -.035em; margin: 0 auto 34px; max-width: 680px; }
+.signal-primary { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 18px; padding: 19px 32px; min-height: 66px; min-width: 265px; background: var(--signal-accent); color: #fff; font-size: clamp(19px, 2.6vw, 25px) !important; font-weight: 750 !important; box-shadow: 0 5px 0 #0b5554; }
+.signal-primary:hover { background: #0b6968; }
+.signal-primary:active { transform: translateY(3px); box-shadow: 0 2px 0 #0b5554; }
+.signal-secondary { border: 2px solid var(--signal-accent); border-radius: 18px; padding: 17px 26px; min-height: 62px; background: transparent; color: var(--signal-deep); font-size: 21px !important; font-weight: 700 !important; }
+.signal-privacy { color: var(--signal-muted); font-size: 17px; line-height: 1.4; margin: 25px auto 0; }
+.signal-error { background: #fff0df; border-left: 5px solid #ab571b; text-align: left; padding: 14px 18px; color: #71370d; font-size: 18px; line-height: 1.4; }
+.signal-task { max-width: 920px; margin: 30px auto 20px; text-align: center; }
+.signal-step { color: #365b62; font-size: clamp(17px, 2vw, 20px); font-weight: 700; }
+.signal-task h1 { font-size: clamp(29px, 4vw, 46px); line-height: 1.15; margin: 10px 0 6px; }
+.signal-gesture { display: inline-flex; flex-direction: column; align-items: center; gap: 3px; font-size: clamp(30px, 4vw, 46px); line-height: 1.1; font-weight: 800; }
+.signal-gesture__icon { font-size: clamp(60px, 8vw, 100px); line-height: 1.16; }
+.signal-gesture--compact { flex-direction: row; gap: 10px; font-size: clamp(20px, 2.5vw, 30px); }
+.signal-gesture--compact .signal-gesture__icon { font-size: 1.15em; }
+.signal-stepbar { height: 9px; width: min(100%, 560px); margin: 20px auto 0; border-radius: 20px; overflow: hidden; background: #c9dfdd; }
+.signal-stepbar span { display: block; height: 100%; border-radius: inherit; background: var(--signal-accent); }
+.signal-question > p { font-size: 20px; color: var(--signal-muted); margin: 18px 0 8px; }
+.signal-question h1 { margin: 10px auto 18px; max-width: 780px; }
+.signal-options { display: flex; justify-content: center; gap: clamp(12px, 4vw, 50px); margin-top: 10px; }
+.signal-options .signal-gesture { background: #e0efec; min-width: 140px; border-radius: 16px; padding: 12px 20px; }
+.signal-urgent { color: #8f271e; }
+.signal-urgent .signal-gesture { color: #8f271e; }
+.signal-urgent p { font-size: 23px; margin: 8px 0; }
+.signal-urgent strong { display: inline-grid; place-items: center; min-width: 42px; height: 42px; border-radius: 50%; background: #fff0e6; }
+.signal-request { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 16px; font-size: clamp(22px, 3vw, 30px); font-weight: 750; }
+.signal-request p { margin: 0; }
+.signal-camera { position: relative; width: min(100%, 920px); aspect-ratio: 16 / 9; max-height: 55vh; overflow: hidden; border-radius: 22px; background: var(--signal-deep); border: 5px solid #174b53; margin: 0 auto; }
+.signal-camera--hidden { display: none; }
+.signal-camera video, .signal-camera canvas { position: absolute; width: 100%; height: 100%; inset: 0; object-fit: cover; }
+.signal-camera video { transform: scaleX(-1); }
+.signal-camera canvas { pointer-events: none; }
+.signal-camera__recognized { position: absolute; left: 16px; top: 16px; padding: 8px 14px; border-radius: 12px; background: rgba(244, 251, 250, .96); color: var(--signal-deep); }
+.signal-hold { position: absolute; right: 18px; bottom: 18px; width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; }
+.signal-hold span { display: grid; place-items: center; width: 61px; height: 61px; border-radius: 50%; background: var(--signal-deep); color: white; font-size: 18px; font-weight: 800; }
+.signal-guidance { max-width: 920px; min-height: 76px; margin: 5px auto 10px; display: grid; place-items: center; text-align: center; font-size: clamp(19px, 2.6vw, 26px); font-weight: 700; }
+.signal-guidance p { margin: 0; }
+.signal-hint { color: #8c4b0c; background: #fff1d9; border-radius: 15px; padding: 14px 24px; width: 100%; }
+.signal-hint span { margin-right: 8px; }
+.signal-feedback { color: #116a5a; }
+.signal-results__icon { display: grid; place-items: center; width: 86px; height: 86px; margin: 0 auto 14px; border-radius: 50%; background: #d4ebe7; color: #086c5d; font-size: 62px; font-weight: 800; }
+.signal-results h1 { font-size: clamp(30px, 5vw, 46px); margin: 0; }
+.signal-results__score { font-size: clamp(54px, 9vw, 86px); line-height: 1; font-weight: 800; margin: 18px 0 24px; }
+.signal-results dl { margin: 0 auto 24px; max-width: 560px; border-top: 2px solid #cadbd9; }
+.signal-results dl div { display: flex; justify-content: space-between; gap: 15px; padding: 12px 0; border-bottom: 2px solid #cadbd9; font-size: 20px; }
+.signal-results dt { color: var(--signal-muted); }
+.signal-results dd { margin: 0; font-weight: 800; }
+.signal-best { color: #0b705d; font-size: 21px; font-weight: 800; }
+.signal-results__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin-top: 25px; }
+@media (max-width: 620px) {
+  .signal-patient { padding-bottom: 22px; }
+  .signal-header { min-height: 70px; }
+  .signal-brand__mark { width: 30px; height: 30px; font-size: 22px; }
+  .signal-task { margin: 22px auto 15px; }
+  .signal-camera { aspect-ratio: 4 / 5; max-height: 55vh; border-radius: 16px; border-width: 3px; }
+  .signal-options .signal-gesture { min-width: 0; padding: 9px 12px; }
+  .signal-results dl div { font-size: 17px; }
+  .signal-primary, .signal-secondary { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .signal-patient * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
