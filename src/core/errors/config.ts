@@ -1,0 +1,15 @@
+export const DIAGNOSTIC_CONFIG = {
+  minHandSize: 0.10,
+  maxHandSize: 0.36,
+  minEdgeMargin: 0.055,
+  minBrightness: 0.20,
+  minPalmFacing: 0.52,
+  maxSpeed: 0.80,
+  extendedThreshold: 0.72,
+  foldedThreshold: 0.35,
+  minFingerDifference: 0.30,
+  thumbUpMaxAngle: 60,
+  thumbDownMinAngle: 120,
+  hintVisibleMs: 1200,
+  correctedWaitMs: 500,
+} as const;
