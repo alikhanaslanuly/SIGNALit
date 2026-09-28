@@ -18,6 +18,8 @@ export interface HandFrame {
   landmarks: readonly Landmark[];
   worldLandmarks?: readonly Landmark[];
   handedness: 'Left' | 'Right' | null;
+  /** MediaPipe handedness confidence, when available. */
+  handednessScore?: number;
   timestampMs: number;
   width: number;
   height: number;

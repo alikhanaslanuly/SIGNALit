@@ -4,7 +4,7 @@ import { VisionEngine } from './engine';
 
 function makeEngine(video: Partial<HTMLVideoElement> = {}): VisionEngine {
   vi.stubGlobal('document', {
-    createElement: () => ({ width: 0, height: 0 }),
+    createElement: () => ({ width: 0, height: 0, getContext: () => null }),
   });
   return new VisionEngine(video as HTMLVideoElement);
 }
@@ -31,6 +31,18 @@ describe('VisionEngine context', () => {
 });
 
 describe('VisionEngine camera lifecycle', () => {
+  it('reports denied camera permission through onError', async () => {
+    const denied = new DOMException('Permission denied', 'NotAllowedError');
+    const getUserMedia = vi.fn().mockRejectedValue(denied);
+    vi.stubGlobal('navigator', { mediaDevices: { getUserMedia } });
+    const engine = makeEngine({ pause: vi.fn(), srcObject: null });
+    const errors: Error[] = [];
+    engine.onError(error => errors.push(error));
+
+    await expect(engine.start()).rejects.toBe(denied);
+    expect(errors).toEqual([denied]);
+  });
+
   it('opens the camera once and closes a late stream after stop', async () => {
     let resolveStream!: (stream: MediaStream) => void;
     const pendingStream = new Promise<MediaStream>(resolve => { resolveStream = resolve; });
@@ -70,5 +82,23 @@ describe('VisionEngine camera lifecycle', () => {
 
     await expect(starting).resolves.toBeUndefined();
     expect(stopTrack).toHaveBeenCalledOnce();
+  });
+});
+
+describe('VisionEngine frame mapping', () => {
+  it('keeps the MediaPipe handedness score for the shared-contract adapter', () => {
+    const engine = makeEngine({ videoWidth: 640, videoHeight: 480 });
+    let frameScore: number | undefined;
+    engine.onFrame(frame => { frameScore = frame?.handednessScore; });
+    const result = {
+      landmarks: [Array.from({ length: 21 }, () => ({ x: 0.5, y: 0.5, z: 0 }))],
+      handedness: [[{ categoryName: 'Right', score: 0.91 }]],
+      worldLandmarks: [],
+    };
+    const processResult = engine as unknown as { processResult(result: unknown, timestampMs: number): void };
+
+    processResult.processResult(result, 100);
+
+    expect(frameScore).toBe(0.91);
   });
 });
