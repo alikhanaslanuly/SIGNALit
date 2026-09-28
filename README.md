@@ -1,5 +1,7 @@
 # SIGNAL — FOR HOSPITAL
 
+Project status, team handoff and upgrade plan (Russian): [docs/PROJECT_STATUS_RU.md](docs/PROJECT_STATUS_RU.md).
+
 SIGNAL is a browser communication aid for a patient who temporarily cannot speak comfortably. The camera detects one hand, recognizes six simple poses, and turns confirmed gestures into requests or YES/NO answers for a nurse. It is an additional communication channel, not a medical diagnostic system or a replacement for a hospital call button.
 
 ## Problem and solution
