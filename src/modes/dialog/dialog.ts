@@ -44,6 +44,9 @@ export function transitionDialog(state: DialogState, event: DialogEvent): Dialog
     return { state: { ...state, activeRequest: { ...state.activeRequest, status: event.status } }, messages: noMessages };
   }
   if (event.type === 'QUESTION') {
+    if (state.phase === 'CANCEL_WINDOW' && state.cancelUntil !== null && event.now < state.cancelUntil) {
+      return { state: { ...state, questionId: event.questionId, lastAnswer: null }, messages: noMessages };
+    }
     return { state: { ...state, phase: 'WAITING_YES_NO', questionId: event.questionId,
       pendingRequest: null, cancelUntil: null, lastAnswer: null }, messages: noMessages };
   }
