@@ -25,6 +25,13 @@ function setup() {
 }
 
 describe('development fixture recorder', () => {
+  it('refuses to download an empty fixture file', () => {
+    const { engine } = setup();
+    const recorder = createDevFeatureRecorder(engine);
+    expect(() => recorder.download()).toThrow('No samples');
+    recorder.dispose();
+  });
+
   it('captures a detached frame, features, and expected gesture', () => {
     const { frame, features, emit, engine } = setup();
     const recorder = createDevFeatureRecorder(engine);

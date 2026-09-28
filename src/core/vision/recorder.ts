@@ -39,6 +39,7 @@ export function createDevFeatureRecorder(engine: Engine) {
     },
     samples(): readonly FeatureSample[] { return samples; },
     download(): void {
+      if (samples.length === 0) throw new Error('No samples to download');
       const blob = new Blob([JSON.stringify(samples, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');

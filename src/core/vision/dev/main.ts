@@ -9,6 +9,7 @@ const recognition = document.querySelector<HTMLOutputElement>('#recognition')!;
 const scores = document.querySelector<HTMLOutputElement>('#scores')!;
 const participant = document.querySelector<HTMLInputElement>('#participant')!;
 const counts = document.querySelector<HTMLOutputElement>('#counts')!;
+const downloadButton = document.querySelector<HTMLButtonElement>('#download')!;
 const engine = new VisionEngine(video, { targetFps: 30 });
 const recorder = createDevFeatureRecorder(engine);
 const frameTimes: number[] = [];
@@ -42,7 +43,10 @@ document.querySelector<HTMLButtonElement>('#stop')!.onclick = () => {
   engine.stop();
   status.textContent = 'Stopped';
 };
-document.querySelector<HTMLButtonElement>('#download')!.onclick = () => recorder.download();
+downloadButton.disabled = true;
+downloadButton.onclick = () => {
+  try { recorder.download(); } catch (error) { status.textContent = `Error: ${(error as Error).message}`; }
+};
 document.querySelectorAll<HTMLButtonElement>('[data-gesture]').forEach(button => {
   button.onclick = () => {
     try {
@@ -50,6 +54,7 @@ document.querySelectorAll<HTMLButtonElement>('[data-gesture]').forEach(button =>
       recorder.capture(gesture, participant.value);
       const samples = recorder.samples();
       counts.textContent = GESTURES.map(g => `${g}: ${samples.filter(s => s.gesture === g).length}`).join('  ');
+      downloadButton.disabled = false;
       status.textContent = `Captured ${gesture} for ${participant.value}`;
     } catch (error) {
       status.textContent = `Error: ${(error as Error).message}`;
