@@ -37,6 +37,9 @@ describe('dashboard model', () => {
     state = applyDashboardMessage(state, message('s3', 600, 'STATUS', { requestId: 'r1', status: 'PENDING' }));
     expect(state.requests[0]?.status).toBe('COMPLETED');
     state = applyDashboardMessage(state, message('s4', 700, 'STATUS', { requestId: 'r1', status: 'CANCELLED' }));
-    expect(sortedRequests(state)).toEqual([]);
+    expect(sortedRequests(state)[0]?.status).toBe('COMPLETED');
+    state = applyDashboardMessage(state, message('r2', 800, 'REQUEST', { request: 'PAIN' }));
+    state = applyDashboardMessage(state, message('s5', 900, 'STATUS', { requestId: 'r2', status: 'CANCELLED' }));
+    expect(sortedRequests(state).map(request => request.id)).toEqual(['r1']);
   });
 });
