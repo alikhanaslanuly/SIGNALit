@@ -2,6 +2,7 @@ export const en = {
   brand: 'SIGNAL',
   tagline: 'Communicate with gestures when speaking is hard.',
   turnOnCamera: 'Turn on camera',
+  startingCamera: 'Starting camera…',
   privacy: 'Video is processed on your device.',
   cameraError: 'Camera unavailable. Allow camera access in your browser and try again.',
   calibration: 'Camera setup', training: 'Practice', dialog: 'Communication',

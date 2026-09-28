@@ -8,7 +8,7 @@ import './patient.css';
 
 type Active = { recognition: Recognition; hint?: Hint | null; corrected?: boolean; feedback?: GestureId | null };
 export type PatientViewState =
-  | { screen: 'start'; cameraError?: string }
+  | { screen: 'start'; cameraError?: string; cameraStarting?: boolean }
   | ({ screen: 'calibration'; target: 'YES' | 'NO'; step: 1 | 2; progress: number } & Active)
   | ({ screen: 'training'; training: TrainingState } & Active)
   | ({ screen: 'dialog'; question?: string; confirmation?: 'WATER' | 'TOILET';
@@ -56,7 +56,7 @@ export function PatientExperience({ state, locale, videoRef, canvasRef, speechEn
     {state.screen === 'start' && <section className="signal-intro">
       <div className="signal-intro__symbol" aria-hidden="true">✋</div>
       <h1>{t.tagline}</h1>
-      <button type="button" className="signal-primary" onClick={onStart}>{t.turnOnCamera}</button>
+      <button type="button" className="signal-primary" onClick={onStart} disabled={state.cameraStarting}>{state.cameraStarting ? t.startingCamera : t.turnOnCamera}</button>
       <p className="signal-privacy">{t.privacy}</p>
       {state.cameraError && <p role="alert" className="signal-error">{t.cameraError}</p>}
     </section>}
