@@ -59,7 +59,10 @@ export class VisionEngine implements Engine {
     const generation = ++this.generation;
     const promise = this.startInternal(generation)
       .catch(error => {
-        if (generation === this.generation) this.stop();
+        // video.play() may reject after stop() aborts playback. That is a
+        // normal cancellation, not a camera failure for the caller.
+        if (generation !== this.generation) return;
+        this.stop();
         throw error;
       })
       .finally(() => {

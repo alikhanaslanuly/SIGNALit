@@ -52,4 +52,23 @@ describe('VisionEngine camera lifecycle', () => {
     expect(stopTrack).toHaveBeenCalledOnce();
     expect(video.srcObject).toBeNull();
   });
+
+  it('does not report a play interruption caused by stop as a camera error', async () => {
+    let rejectPlay!: (error: Error) => void;
+    const pendingPlay = new Promise<void>((_resolve, reject) => { rejectPlay = reject; });
+    const play = vi.fn(() => pendingPlay);
+    const stopTrack = vi.fn();
+    const stream = { getTracks: () => [{ stop: stopTrack }] } as unknown as MediaStream;
+    const getUserMedia = vi.fn().mockResolvedValue(stream);
+    vi.stubGlobal('navigator', { mediaDevices: { getUserMedia } });
+    const engine = makeEngine({ play, pause: vi.fn(), srcObject: null });
+
+    const starting = engine.start();
+    await vi.waitFor(() => expect(play).toHaveBeenCalledOnce());
+    engine.stop();
+    rejectPlay(new Error('play interrupted by stop'));
+
+    await expect(starting).resolves.toBeUndefined();
+    expect(stopTrack).toHaveBeenCalledOnce();
+  });
 });
