@@ -16,6 +16,14 @@ describe('dashboard model', () => {
     const state = entries.reduce(applyDashboardMessage, emptyDashboardState());
     expect(sortedRequests(state).map(request => request.id)).toEqual(['help1', 'help2', 'toilet', 'water']);
   });
+  it('keeps active requests above completed ones and records completion time', () => {
+    let state = emptyDashboardState();
+    state = applyDashboardMessage(state, message('old', 1000, 'REQUEST', { request: 'PAIN' }));
+    state = applyDashboardMessage(state, message('new', 2000, 'REQUEST', { request: 'PAIN' }));
+    state = applyDashboardMessage(state, message('done', 4000, 'STATUS', { requestId: 'old', status: 'COMPLETED' }));
+    expect(sortedRequests(state).map(request => request.id)).toEqual(['new', 'old']);
+    expect(state.requests[0]?.completedAt).toBe(4000);
+  });
   it('tracks question and answer, status updates, and cancellation without duplicate events', () => {
     let state = emptyDashboardState();
     state = applyDashboardMessage(state, message('q1', 100, 'QUESTION', { questionId: 'pain' }));
