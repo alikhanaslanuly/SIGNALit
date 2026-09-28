@@ -38,10 +38,13 @@ export function transitionDialog(state: DialogState, event: DialogEvent): Dialog
   if (event.type === 'STATUS') {
     if (state.activeRequest?.id !== event.requestId) return { state, messages: noMessages };
     if (event.status === 'CANCELLED') {
+      if (state.activeRequest.status === 'COMPLETED') return { state, messages: noMessages };
       return { state: { ...state, activeRequest: null, phase: state.phase === 'CANCEL_WINDOW' ? resumedPhase(state) : state.phase, cancelUntil: null }, messages: noMessages };
     }
     if (rank(event.status) <= rank(state.activeRequest.status)) return { state, messages: noMessages };
-    return { state: { ...state, activeRequest: { ...state.activeRequest, status: event.status } }, messages: noMessages };
+    return { state: { ...state, activeRequest: { ...state.activeRequest, status: event.status },
+      ...(event.status === 'COMPLETED' && state.phase === 'CANCEL_WINDOW'
+        ? { phase: resumedPhase(state), cancelUntil: null } : {}) }, messages: noMessages };
   }
   if (event.type === 'QUESTION') {
     if (state.phase === 'CANCEL_WINDOW' && state.cancelUntil !== null && event.now < state.cancelUntil) {

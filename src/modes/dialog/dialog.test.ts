@@ -54,4 +54,14 @@ describe('dialog state machine', () => {
     const stale = transitionDialog(complete.state, { type: 'STATUS', requestId: 'r1', status: 'ACKNOWLEDGED', now: 2300 });
     expect(stale.state.activeRequest?.status).toBe('COMPLETED');
   });
+  it('does not cancel a request already completed by the nurse', () => {
+    const sent = transitionDialog(initialDialogState('204'), gesture('HELP', 1000, 'r1'));
+    const complete = transitionDialog(sent.state, { type: 'STATUS', requestId: 'r1', status: 'COMPLETED', now: 1500 });
+    expect(complete.state).toMatchObject({ phase: 'IDLE', cancelUntil: null });
+    const lateNo = transitionDialog(complete.state, gesture('NO', 2000, 'late-no'));
+    expect(lateNo.messages).toEqual([]);
+    expect(lateNo.state.activeRequest?.status).toBe('COMPLETED');
+    const lateCancel = transitionDialog(complete.state, { type: 'STATUS', requestId: 'r1', status: 'CANCELLED', now: 2500 });
+    expect(lateCancel.state.activeRequest?.status).toBe('COMPLETED');
+  });
 });

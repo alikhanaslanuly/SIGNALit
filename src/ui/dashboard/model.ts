@@ -30,7 +30,9 @@ export function applyDashboardMessage(state: DashboardState, message: SignalMess
   }
   if (message.kind === 'STATUS' && typeof message.payload.requestId === 'string' && isStatus(message.payload.status)) {
     return { ...state, seenIds, requests: state.requests.map(request =>
-      request.id === message.payload.requestId && statusRank(message.payload.status as NurseRequest['status']) > statusRank(request.status)
+      request.id === message.payload.requestId &&
+        !(request.status === 'COMPLETED' && message.payload.status === 'CANCELLED') &&
+        statusRank(message.payload.status as NurseRequest['status']) > statusRank(request.status)
         ? { ...request, status: message.payload.status as NurseRequest['status'],
             ...(message.payload.status === 'COMPLETED' ? { completedAt: Math.max(request.ts, message.ts) } : {}) } : request) };
   }
