@@ -19,11 +19,11 @@ const icon: Record<NurseRequest['gesture'], string> = { HELP: '✋', PAIN: '✊'
 export function NurseDashboard({ state, now, onQuestion, onStatus }: NurseDashboardProps) {
   const requests = sortedRequests(state);
   return <main className="signal-dashboard">
-    <header className="signal-dashboard__header"><div><p>Nurse station</p><h1>Patient requests</h1></div><span className="signal-dashboard__count">{requests.filter(request => request.status !== 'COMPLETED').length} active</span></header>
-    <section className="signal-dashboard__section" aria-label="Patient requests" aria-live="polite">
+    <header className="signal-dashboard__header"><div><p>Nurse station</p><h1>Patient requests</h1></div><span className="signal-dashboard__count" aria-live="polite">{requests.filter(request => request.status !== 'COMPLETED').length} active</span></header>
+    <section className="signal-dashboard__section" aria-label="Patient requests">
       {requests.length === 0 && <p className="signal-dashboard__empty">No requests yet. New patient signals appear here.</p>}
-      {requests.map(request => <article key={request.id} className={`signal-request-card signal-request-card--${request.gesture.toLowerCase()}`}>
-        <div className="signal-request-card__top"><span>ROOM {request.room}</span><span className="signal-request-card__status">{request.status}</span></div>
+      {requests.map(request => <article key={request.id} className={`signal-request-card signal-request-card--${request.gesture.toLowerCase()}${request.status === 'COMPLETED' ? ' signal-request-card--completed' : ''}`}>
+        <div className="signal-request-card__top"><span>ROOM {request.room}</span><span className={`signal-request-card__status signal-request-card__status--${request.status.toLowerCase()}`} aria-live="polite">{request.status}</span></div>
         <div className="signal-request-card__main"><span aria-hidden="true">{icon[request.gesture]}</span><strong>{request.gesture}</strong></div>
         <div className="signal-request-card__foot"><span>{request.status === 'COMPLETED'
           ? `Resolved in ${waitTime(request.ts, request.completedAt ?? now)}`

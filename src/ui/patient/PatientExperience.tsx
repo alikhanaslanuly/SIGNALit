@@ -78,7 +78,7 @@ export function PatientExperience({ state, locale, videoRef, canvasRef, speechEn
       {state.question && <div className="signal-question"><p>{t.nurseAsks}</p><h1>{state.question}</h1><p>{t.answer}</p><div className="signal-options"><GestureMark gesture="YES" locale={locale} compact /><GestureMark gesture="NO" locale={locale} compact /></div></div>}
       {state.confirmation && <div className="signal-question"><p>{t.selected}</p><GestureMark gesture={state.confirmation} locale={locale} /><h1>{t.confirmRequest}</h1><div className="signal-options"><GestureMark gesture="YES" locale={locale} compact /><GestureMark gesture="NO" locale={locale} compact /></div></div>}
       {state.urgent && <div className="signal-urgent" role="status"><GestureMark gesture={state.urgent.gesture} locale={locale} /><h1>{t.requestSent}</h1><p>{t.cancel} 👎 <strong>{Math.max(0, Math.ceil(state.urgent.secondsRemaining))}</strong></p></div>}
-      {state.request && <div className="signal-request" role="status"><GestureMark gesture={state.request.gesture} locale={locale} compact /><p>{state.request.status === 'PENDING' ? t.requestSent : state.request.status === 'ACKNOWLEDGED' ? t.nurseSaw : t.requestCompleted}</p></div>}
+      {state.request && <div className={`signal-request signal-request--${state.request.status.toLowerCase()}`} role="status"><GestureMark gesture={state.request.gesture} locale={locale} compact /><p>{state.request.status === 'PENDING' ? t.requestSent : state.request.status === 'ACKNOWLEDGED' ? t.nurseSaw : t.requestCompleted}</p></div>}
       {!state.question && !state.confirmation && !state.urgent && !state.request && <h1>{t.awaitingGesture}</h1>}
     </section>}
 
