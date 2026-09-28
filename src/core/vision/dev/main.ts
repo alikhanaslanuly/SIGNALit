@@ -6,6 +6,7 @@ const canvas = document.querySelector<HTMLCanvasElement>('#canvas')!;
 const status = document.querySelector<HTMLOutputElement>('#status')!;
 const metrics = document.querySelector<HTMLOutputElement>('#metrics')!;
 const recognition = document.querySelector<HTMLOutputElement>('#recognition')!;
+const lastConfirmed = document.querySelector<HTMLOutputElement>('#last-confirmed')!;
 const scores = document.querySelector<HTMLOutputElement>('#scores')!;
 const participant = document.querySelector<HTMLInputElement>('#participant')!;
 const counts = document.querySelector<HTMLOutputElement>('#counts')!;
@@ -31,6 +32,9 @@ engine.onFrame((frame, features) => {
 });
 engine.onRecognition(value => {
   recognition.textContent = `${value.state} ${value.gesture ?? ''} ${Math.round(value.holdProgress * 100)}%`;
+  if (value.state === 'confirmed' && value.gesture) {
+    lastConfirmed.textContent = `Последнее подтверждение: ${value.gesture}`;
+  }
 });
 engine.onError(error => { status.textContent = `Error: ${error.message}`; });
 
@@ -51,11 +55,14 @@ document.querySelectorAll<HTMLButtonElement>('[data-gesture]').forEach(button =>
   button.onclick = () => {
     try {
       const gesture = button.dataset.gesture as GestureId;
-      recorder.capture(gesture, participant.value);
+      const sample = recorder.capture(gesture, participant.value);
       const samples = recorder.samples();
       counts.textContent = GESTURES.map(g => `${g}: ${samples.filter(s => s.gesture === g).length}`).join('  ');
       downloadButton.disabled = false;
-      status.textContent = `Captured ${gesture} for ${participant.value}`;
+      const accepted = classifyGesture(sample.features)?.gesture;
+      status.textContent = accepted === gesture
+        ? `Записан ${gesture} для ${participant.value}`
+        : `Записан ${gesture}, но модель сейчас видит ${accepted ?? 'неуверенную позу'}. Удержите жест около секунды и повторите запись.`;
     } catch (error) {
       status.textContent = `Error: ${(error as Error).message}`;
     }

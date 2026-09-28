@@ -24,9 +24,10 @@
   <div class="preview"><video id="video" autoplay muted playsinline></video><canvas id="canvas" width="640" height="480"></canvas></div>
   <output id="metrics">Нет кадров</output>
   <output id="recognition">none</output>
+  <output id="last-confirmed">Последнее подтверждение: нет</output>
   <output id="scores"></output>
   <h2>Запись признаков для настройки</h2>
-  <p>Когда камера показывает вашу руку, нажмите кнопку нужного жеста. Счётчик ниже должен стать больше нуля перед скачиванием.</p>
+  <p>Покажите жест и удержите его около секунды. Когда строка «accepted» показывает нужный жест, нажмите его кнопку. Если модель ошиблась, запись сохранится для анализа; повторите попытку.</p>
   <label>Код участника <input id="participant" value="p1"></label>
   <div>
     <button data-gesture="YES">👍 YES</button><button data-gesture="NO">👎 NO</button>
