@@ -25,7 +25,9 @@ export function NurseDashboard({ state, now, onQuestion, onStatus }: NurseDashbo
       {requests.map(request => <article key={request.id} className={`signal-request-card signal-request-card--${request.gesture.toLowerCase()}`}>
         <div className="signal-request-card__top"><span>ROOM {request.room}</span><span className="signal-request-card__status">{request.status}</span></div>
         <div className="signal-request-card__main"><span aria-hidden="true">{icon[request.gesture]}</span><strong>{request.gesture}</strong></div>
-        <div className="signal-request-card__foot"><span>Waiting {waitTime(request.ts, now)}</span>
+        <div className="signal-request-card__foot"><span>{request.status === 'COMPLETED'
+          ? `Resolved in ${waitTime(request.ts, request.completedAt ?? now)}`
+          : `Waiting ${waitTime(request.ts, now)}`}</span>
           {request.status === 'PENDING' && <button type="button" onClick={() => onStatus(request.id, 'ACKNOWLEDGED')}>Acknowledge</button>}
           {request.status === 'ACKNOWLEDGED' && <button type="button" onClick={() => onStatus(request.id, 'COMPLETED')}>Complete</button>}
         </div>

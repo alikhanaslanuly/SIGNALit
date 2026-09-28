@@ -22,4 +22,11 @@ describe('NurseDashboard', () => {
     expect(html).toContain('YES');
     expect(html).toContain('Question library');
   });
+  it('freezes the elapsed time on a completed request', () => {
+    let state = applyDashboardMessage(emptyDashboardState(), { id: 'r1', ts: 1000, room: '204', kind: 'REQUEST', payload: { request: 'PAIN' } });
+    state = applyDashboardMessage(state, { id: 's1', ts: 4000, room: '204', kind: 'STATUS', payload: { requestId: 'r1', status: 'COMPLETED' } });
+    const html = renderToStaticMarkup(<NurseDashboard state={state} now={100_000} onQuestion={() => {}} onStatus={() => {}} />);
+    expect(html).toContain('Resolved in 00:03');
+    expect(html).not.toContain('Waiting 01:39');
+  });
 });

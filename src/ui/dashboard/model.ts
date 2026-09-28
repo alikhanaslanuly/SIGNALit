@@ -6,6 +6,7 @@ export interface NurseRequest {
   room: string;
   gesture: 'HELP' | 'PAIN' | 'TOILET' | 'WATER';
   status: Status | 'CANCELLED';
+  completedAt?: number;
 }
 export interface DashboardState {
   requests: NurseRequest[];
@@ -30,7 +31,8 @@ export function applyDashboardMessage(state: DashboardState, message: SignalMess
   if (message.kind === 'STATUS' && typeof message.payload.requestId === 'string' && isStatus(message.payload.status)) {
     return { ...state, seenIds, requests: state.requests.map(request =>
       request.id === message.payload.requestId && statusRank(message.payload.status as NurseRequest['status']) > statusRank(request.status)
-        ? { ...request, status: message.payload.status as NurseRequest['status'] } : request) };
+        ? { ...request, status: message.payload.status as NurseRequest['status'],
+            ...(message.payload.status === 'COMPLETED' ? { completedAt: Math.max(request.ts, message.ts) } : {}) } : request) };
   }
   if (message.kind === 'QUESTION' && typeof message.payload.questionId === 'string' ||
       message.kind === 'ANSWER' && typeof message.payload.questionId === 'string' &&
@@ -43,7 +45,8 @@ export function applyDashboardMessage(state: DashboardState, message: SignalMess
 const priority: Record<NurseRequest['gesture'], number> = { HELP: 0, PAIN: 0, TOILET: 1, WATER: 2 };
 export function sortedRequests(state: DashboardState): NurseRequest[] {
   return state.requests.filter(request => request.status !== 'CANCELLED')
-    .sort((a, b) => priority[a.gesture] - priority[b.gesture] || a.ts - b.ts);
+    .sort((a, b) => Number(a.status === 'COMPLETED') - Number(b.status === 'COMPLETED') ||
+      priority[a.gesture] - priority[b.gesture] || a.ts - b.ts);
 }
 
 export const REQUEST_GESTURES: readonly GestureId[] = ['HELP', 'PAIN', 'TOILET', 'WATER'];
