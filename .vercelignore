@@ -1,0 +1,6 @@
+tests/
+src/**/*.test.ts
+src/**/*.test.tsx
+src/**/dev/
+docs/
+work/

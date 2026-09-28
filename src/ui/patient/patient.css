@@ -27,6 +27,7 @@
 .signal-intro h1 { font-size: clamp(36px, 5vw, 60px); line-height: 1.08; letter-spacing: -.035em; margin: 0 auto 34px; max-width: 680px; }
 .signal-primary { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 18px; padding: 19px 32px; min-height: 66px; min-width: 265px; background: var(--signal-accent); color: #fff; font-size: clamp(19px, 2.6vw, 25px) !important; font-weight: 750 !important; box-shadow: 0 5px 0 #0b5554; }
 .signal-primary:hover { background: #0b6968; }
+.signal-primary:disabled { cursor: wait; opacity: .7; box-shadow: none; }
 .signal-primary:active { transform: translateY(3px); box-shadow: 0 2px 0 #0b5554; }
 .signal-secondary { border: 2px solid var(--signal-accent); border-radius: 18px; padding: 17px 26px; min-height: 62px; background: transparent; color: var(--signal-deep); font-size: 21px !important; font-weight: 700 !important; }
 .signal-privacy { color: var(--signal-muted); font-size: 17px; line-height: 1.4; margin: 25px auto 0; }
