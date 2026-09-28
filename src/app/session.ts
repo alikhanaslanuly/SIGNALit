@@ -53,6 +53,7 @@ export class SignalSession {
   private locale: Locale = 'ru';
   private audioEnabled = false;
   private started = false;
+  private startEpoch = 0;
   private currentCalibrationTarget: 'YES' | 'NO' | null = null;
   snapshot: SessionSnapshot;
 
@@ -77,7 +78,7 @@ export class SignalSession {
           this.update({ hint, corrected: false });
         }
       }));
-      this.unsubscribe.push(this.engine.onError(error => this.update({ cameraError: error.message })));
+      this.unsubscribe.push(this.engine.onError(error => this.handleEngineError(error)));
       if ('onHintDisplay' in this.engine && typeof this.engine.onHintDisplay === 'function') {
         const adapter = this.engine as RuntimeEngine & { onHintDisplay(cb: (display: { corrected: boolean }) => void): () => void };
         this.unsubscribe.push(adapter.onHintDisplay(display => {
@@ -98,11 +99,26 @@ export class SignalSession {
   setLocale(locale: Locale): void { this.locale = locale; }
   setAudioEnabled(value: boolean): void { this.audioEnabled = value; }
 
+  private handleEngineError(error: unknown): void {
+    this.startEpoch++;
+    this.started = false;
+    this.calibrationSession = null;
+    this.trainingSession = null;
+    this.currentCalibrationTarget = null;
+    this.update({ screen: 'start', cameraStarting: false,
+      cameraError: error instanceof Error ? error.message : String(error),
+      calibration: null, training: null, result: null, hint: null,
+      recognition: noRecognition, feedback: null });
+    this.engine?.stop();
+  }
+
   async start(): Promise<void> {
     if (!this.engine || this.started || this.snapshot.cameraStarting) return;
+    const attempt = ++this.startEpoch;
     this.update({ cameraStarting: true, cameraError: null });
     try {
       await this.engine.start();
+      if (attempt !== this.startEpoch) return;
       this.started = true;
       if (this.mode === 'mock') this.enterDialog();
       else {
@@ -113,9 +129,9 @@ export class SignalSession {
           calibration: { target: 'YES', step: 1, progress: 0 } });
       }
     } catch (error) {
-      this.update({ cameraError: error instanceof Error ? error.message : String(error), screen: 'start' });
+      if (attempt === this.startEpoch) this.handleEngineError(error);
     } finally {
-      this.update({ cameraStarting: false });
+      if (attempt === this.startEpoch) this.update({ cameraStarting: false });
     }
   }
 
@@ -240,6 +256,7 @@ export class SignalSession {
     }
   }
   dispose(): void {
+    this.startEpoch++;
     this.started = false;
     for (const unsubscribe of this.unsubscribe) unsubscribe();
     if (this.engine && 'dispose' in this.engine && typeof this.engine.dispose === 'function') this.engine.dispose();

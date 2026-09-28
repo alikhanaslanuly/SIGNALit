@@ -36,6 +36,14 @@ describe('dialog state machine', () => {
     expect(expired.state.phase).toBe('IDLE');
     expect(transitionDialog(expired.state, gesture('NO', 5000)).messages).toEqual([]);
   });
+  it('keeps the urgent cancellation window when a nurse asks a question', () => {
+    const sent = transitionDialog(initialDialogState('204'), gesture('HELP', 1000, 'urgent'));
+    const asked = transitionDialog(sent.state, { type: 'QUESTION', questionId: 'water', now: 2000 });
+    expect(asked.state).toMatchObject({ phase: 'CANCEL_WINDOW', cancelUntil: 4000, questionId: 'water' });
+    const cancelled = transitionDialog(asked.state, gesture('NO', 3000, 'cancel'));
+    expect(cancelled.messages[0]).toMatchObject({ kind: 'STATUS', payload: { status: 'CANCELLED' } });
+    expect(cancelled.state).toMatchObject({ phase: 'WAITING_YES_NO', questionId: 'water' });
+  });
   it('updates only the matching request and never moves status backwards', () => {
     const sent = transitionDialog(initialDialogState('204'), gesture('PAIN', 1000, 'r1'));
     const seen = transitionDialog(sent.state, { type: 'STATUS', requestId: 'r1', status: 'ACKNOWLEDGED', now: 2000 });

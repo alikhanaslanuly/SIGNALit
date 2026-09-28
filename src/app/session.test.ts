@@ -68,4 +68,35 @@ describe('SIGNAL session', () => {
     expect(session.snapshot.cameraStarting).toBe(false);
     session.dispose();
   });
+  it('returns to start and permits a retry after a runtime camera error', async () => {
+    const engine = new MockEngine();
+    const session = new SignalSession({ engine, transport: new MemoryTransport(), mode: 'mock' });
+    await session.start();
+    engine.emitError(new Error('camera disconnected'));
+    expect(session.snapshot.screen).toBe('start');
+    expect(session.snapshot.cameraError).toBe('camera disconnected');
+    await session.start();
+    expect(session.snapshot.screen).toBe('dialog');
+    expect(session.snapshot.cameraError).toBeNull();
+    session.dispose();
+  });
+  it('does not enter dialog when a failed startup resolves late', async () => {
+    let release: (() => void) | undefined;
+    class SlowEngine extends MockEngine {
+      override async start(): Promise<void> {
+        await super.start();
+        await new Promise<void>(resolve => { release = resolve; });
+      }
+    }
+    const engine = new SlowEngine();
+    const session = new SignalSession({ engine, transport: new MemoryTransport(), mode: 'mock' });
+    const pending = session.start();
+    await Promise.resolve();
+    engine.emitError(new Error('camera disconnected'));
+    release?.();
+    await pending;
+    expect(session.snapshot.screen).toBe('start');
+    expect(session.snapshot.cameraError).toBe('camera disconnected');
+    session.dispose();
+  });
 });
