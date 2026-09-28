@@ -80,9 +80,7 @@ The classifier is heuristic and recognizes only these six poses. Brightness, cam
 
 ## Deployment
 
-Public demo: https://signal-static-deploy.vercel.app/. The patient and nurse can also open `/patient` and `/dashboard` in two tabs of the same browser.
-
-`vercel.json` configures the Vite build and SPA rewrites for `/patient` and `/dashboard`. On the deployed HTTPS URL, verify camera permission, the model and WASM paths, a fresh private-browser session, and mobile layout. Do not present a local `http://` address as the public demo link.
+Deployment is on hold while the team validates the real camera flow. `vercel.json` prepares the Vite build and SPA rewrites for `/patient` and `/dashboard`. Before sharing a public demo, verify camera permission, the model and WASM paths, a fresh private-browser session, and mobile layout on the final HTTPS URL.
 
 ## Team roles and hackathon notes
 
