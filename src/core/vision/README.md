@@ -1,0 +1,39 @@
+# SIGNAL vision module
+
+This module owns camera capture, one-hand MediaPipe landmarks, smoothing, continuous hand features, gesture scores, and hold confirmation. The inference loop is independent of React. No UI, dialog, transport, or error-hint code is included.
+
+The shared `src/contracts/` directory did not exist when this module was written, so its types are local to `src/core/vision/types.ts` and `src/core/gestures/types.ts`. Reconcile them with the agreed contracts before other modules import them. `onHints` belongs to the separate error layer and is not implemented here.
+
+The app package owner should install `@mediapipe/tasks-vision@1.0.1`. The committed model and WASM files are served from `public/` by Vite/Vercel, so runtime inference makes no CDN request.
+
+```ts
+import { VisionEngine, drawHandFrame } from './core/vision';
+
+const engine = new VisionEngine(videoElement, {
+  baseUrl: import.meta.env.BASE_URL,
+  targetFps: 30,
+});
+const offFrame = engine.onFrame(frame => drawHandFrame(canvasElement, frame, true));
+const offRecognition = engine.onRecognition(recognition => {
+  if (recognition.state === 'confirmed') {
+    // Pass recognition to the dialog/transport owner.
+  }
+});
+const offError = engine.onError(error => console.error(error));
+
+await engine.start(); // Ask from a user action, so the browser can grant camera access.
+
+// On unmount or session end:
+offFrame();
+offRecognition();
+offError();
+engine.stop();
+```
+
+Do not put `onFrame` results into React state on every inference. Draw the landmarks imperatively on canvas, and update React only for selected recognition changes. `drawHandFrame(..., true)` mirrors the overlay when the video preview is mirrored with CSS.
+
+`Recognition.state` moves through `none → candidate → holding → confirmed`. Confirmation is emitted for one frame after roughly 1 second of stable classification. The detector requires a short release and a 1.5-second cooldown before it can confirm again. The classifier rejects weak or ambiguous frames.
+
+To collect real data in Vite development mode, call `createDevFeatureRecorder(engine)`, then `capture(gesture, participantId)` while the pose is visible and `download()`. This exports hand features only, not camera images. Move the JSON into `tests/fixtures/` after checking consent and labels.
+
+The thresholds are initial heuristic values. They need tuning against real recordings from different people, lighting, cameras, and left/right hands. In particular, `palmFacing` estimates plane alignment and cannot prove that the palm rather than the back of the hand faces the camera.
