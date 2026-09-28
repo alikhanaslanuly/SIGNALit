@@ -1,0 +1,4 @@
+.signal-preview-tools { position: fixed; z-index: 10; right: 12px; top: 95px; display: flex; flex-direction: column; gap: 5px; max-height: calc(100vh - 110px); overflow: auto; padding: 10px; border: 1px solid #aac5c3; border-radius: 12px; background: rgba(255,255,255,.96); box-shadow: 0 5px 24px #12394022; font: 13px "Segoe UI", sans-serif; }
+.signal-preview-tools button { text-align: left; border: 0; background: #e4f2f0; color: #173941; border-radius: 6px; padding: 7px 9px; cursor: pointer; }
+.signal-preview-tools button:hover { background: #bce1db; }
+@media (max-width: 800px) { .signal-preview-tools { position: static; max-height: none; flex-direction: row; flex-wrap: wrap; margin: 10px; } }
