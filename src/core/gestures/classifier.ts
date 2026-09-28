@@ -1,4 +1,5 @@
 import type { HandFeatures } from '../vision/types';
+import { DEFAULT_CLASSIFIER_CONFIG } from './config';
 import { GESTURES, type GestureId, type GestureMatch } from './types';
 
 const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
@@ -58,8 +59,8 @@ export function classifyGesture(features: HandFeatures, options: ClassifierOptio
     .sort((a, b) => b.confidence - a.confidence);
   const best = ranked[0];
   const runnerUp = ranked[1].confidence;
-  if (best.confidence < (options.minConfidence ?? 0.72)) return null;
-  if (best.confidence - runnerUp < (options.minMargin ?? 0.12)) return null;
+  if (best.confidence < (options.minConfidence ?? DEFAULT_CLASSIFIER_CONFIG.minConfidence)) return null;
+  if (best.confidence - runnerUp < (options.minMargin ?? DEFAULT_CLASSIFIER_CONFIG.minMargin)) return null;
   if (options.expected && !options.expected.includes(best.gesture)) return null;
   return { ...best, runnerUp };
 }

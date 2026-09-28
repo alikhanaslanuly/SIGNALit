@@ -62,6 +62,7 @@ export class VisionEngine implements Engine {
         // video.play() may reject after stop() aborts playback. That is a
         // normal cancellation, not a camera failure for the caller.
         if (generation !== this.generation) return;
+        this.emitError(error);
         this.stop();
         throw error;
       })
@@ -199,11 +200,13 @@ export class VisionEngine implements Engine {
       return;
     }
 
-    const category = result.handedness?.[0]?.[0]?.categoryName;
+    const handedness = result.handedness?.[0]?.[0];
+    const category = handedness?.categoryName;
     const rawFrame: HandFrame = {
       landmarks: points.map(({ x, y, z }): Landmark => ({ x, y, z })),
       worldLandmarks: result.worldLandmarks?.[0]?.map(({ x, y, z }): Landmark => ({ x, y, z })),
       handedness: category === 'Left' || category === 'Right' ? category : null,
+      handednessScore: handedness?.score,
       timestampMs,
       width: this.video.videoWidth,
       height: this.video.videoHeight,
