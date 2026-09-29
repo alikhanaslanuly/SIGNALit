@@ -12,6 +12,7 @@ describe('PatientExperience', () => {
     expect(html).toContain('Включить камеру');
     expect(html.match(/<video/g)).toHaveLength(1);
     expect(html).toContain('Видео обрабатывается на вашем устройстве');
+    expect(html).toContain('покажите 3 пальца');
   });
   it('shows calibration target and hold progress without debug values', () => {
     const html = render({ screen: 'calibration', target: 'YES', step: 1, progress: 0.5, recognition: { gesture: 'YES', confidence: 0.9, state: 'holding', holdProgress: 0.5 } });
@@ -29,8 +30,14 @@ describe('PatientExperience', () => {
   it('shows question, confirmation, urgent countdown, and acknowledged status', () => {
     expect(render({ screen: 'dialog', recognition, question: 'Вам больно?' })).toContain('Вам больно?');
     expect(render({ screen: 'dialog', recognition, confirmation: 'WATER' })).toContain('Отправить запрос?');
-    expect(render({ screen: 'dialog', recognition, urgent: { gesture: 'HELP', secondsRemaining: 3 } })).toContain('Отмена: 👎');
+    expect(render({ screen: 'dialog', recognition, urgent: { gesture: 'HELP', secondsRemaining: 3 } })).toContain('Отмена:');
     expect(render({ screen: 'dialog', recognition, request: { gesture: 'TOILET', status: 'ACKNOWLEDGED' } })).toContain('Медсестра увидела запрос');
+    expect(render({ screen: 'dialog', recognition, request: { gesture: 'HELP', status: 'PENDING' } })).toContain('✋');
+  });
+  it('renders the calibration fallback, demo badge, and known nurse quick replies', () => {
+    expect(render({ screen: 'calibration', target: 'YES', step: 1, progress: 0, fallback: true, recognition })).toContain('Не удалось настроить камеру');
+    expect(render({ screen: 'dialog', recognition, request: { gesture: 'WATER', status: 'ACKNOWLEDGED', note: 'COMING' } })).toContain('Иду к вам');
+    expect(render({ screen: 'start' })).toContain('Предпросмотр камеры');
   });
   it('renders results and English copy', () => {
     const result = { startedAt: 0, finishedAt: 9000, totalGestures: 6, completedGestures: 6, hintsShown: 4, correctedErrors: 3, averageReactionMs: 1400 };

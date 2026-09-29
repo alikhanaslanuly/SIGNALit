@@ -99,4 +99,38 @@ describe('SIGNAL session', () => {
     expect(session.snapshot.cameraError).toBe('camera disconnected');
     session.dispose();
   });
+  it('reconciles backend identity and restores a patient request after reload', async () => {
+    const engine = new MockEngine(); const transport = new MemoryTransport();
+    const session = new SignalSession({ engine, transport, mode: 'mock', now: () => 1000, makeId: () => 'local-id' });
+    await session.start(); engine.emitConfirmed('HELP');
+    transport.send({ id: 'server-id', ts: 1000, room: '204', kind: 'REQUEST', payload: { request: 'HELP', localRequestId: 'local-id' } });
+    transport.send({ id: 'status', ts: 1100, room: '204', kind: 'STATUS', payload: { requestId: 'server-id', status: 'ACKNOWLEDGED', note: 'COMING' } });
+    expect(session.snapshot.dialog.activeRequest).toMatchObject({ id: 'server-id', status: 'ACKNOWLEDGED', note: 'COMING' });
+    session.dispose();
+    const restoredTransport = new MemoryTransport(); const restored = new SignalSession({ engine: null, transport: restoredTransport, mode: 'real' });
+    restoredTransport.send({ id: 'restored', ts: 1, room: '204', kind: 'REQUEST', payload: { request: 'WATER', status: 'ACKNOWLEDGED' } });
+    expect(restored.snapshot.dialog.activeRequest).toMatchObject({ id: 'restored', gesture: 'WATER', status: 'ACKNOWLEDGED' }); restored.dispose();
+  });
+
+});
+
+it('does not resurrect an older request when the latest recovered request was cancelled', () => {
+  const transport = new MemoryTransport(); const session = new SignalSession({ engine:null,transport,mode:'real' });
+  transport.send({id:'latest',ts:20,room:'204',kind:'REQUEST',payload:{request:'HELP',status:'CANCELLED',hydrated:true}});
+  transport.send({id:'old',ts:10,room:'204',kind:'REQUEST',payload:{request:'WATER',status:'COMPLETED',hydrated:true}});
+  expect(session.snapshot.dialog.activeRequest).toBeNull(); session.dispose();
+});
+
+it('speaks a new reply once and never speaks restored replies or premature delivery', async () => {
+  const { vi } = await import('vitest'); const feedback = await import('../audio/feedback');
+  const speak = vi.spyOn(feedback, 'speakFeedback').mockImplementation(() => {}); const sound = vi.spyOn(feedback, 'playFeedbackSound').mockImplementation(() => {}); vi.stubGlobal('window', {});
+  const engine = new MockEngine(); const transport = new MemoryTransport(); const session = new SignalSession({ engine,transport,mode:'mock',makeId:()=> 'local',now:()=>1000 });
+  try {
+    session.setLocale('en'); session.setAudioEnabled(true); await session.start(); engine.emitConfirmed('HELP');
+    expect(speak.mock.calls.map(call => call[0])).not.toContain('Request sent'); speak.mockClear();
+    transport.send({id:'restore',ts:1100,room:'204',kind:'STATUS',payload:{requestId:'local',status:'ACKNOWLEDGED',note:'COMING',hydrated:true}});
+    expect(speak).not.toHaveBeenCalled();
+    const reply = {id:'live-reply',ts:1200,room:'204',kind:'STATUS' as const,payload:{requestId:'local',status:'ACKNOWLEDGED',note:'WAIT'}};
+    transport.send(reply); transport.send(reply); expect(speak).toHaveBeenCalledTimes(1); expect(speak.mock.calls[0][0]).toContain('Please wait');
+  } finally { session.dispose(); speak.mockRestore(); sound.mockRestore(); vi.unstubAllGlobals(); }
 });
