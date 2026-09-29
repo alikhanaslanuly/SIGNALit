@@ -9,7 +9,9 @@ export class BroadcastTransport implements Transport {
   private seen = new Set<string>();
   private history: SignalMessage[] = [];
   private readonly peerId = crypto.randomUUID();
-  constructor(private readonly channel: ChannelLike = new BroadcastChannel('signal-demo-v1')) {
+  private readonly channel: ChannelLike;
+  constructor(channel: ChannelLike = new BroadcastChannel('signal-demo-v1')) {
+    this.channel = channel;
     this.channel.onmessage = event => {
       if (isSignalMessage(event.data)) { this.deliver(event.data); return; }
       const data = event.data;

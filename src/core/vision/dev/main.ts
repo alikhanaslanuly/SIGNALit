@@ -16,7 +16,12 @@ const recorder = createDevFeatureRecorder(engine);
 const frameTimes: number[] = [];
 let observed = 0;
 
+let lastFrameTime = performance.now();
+
 engine.onFrame((frame, features) => {
+  const now = performance.now();
+  const latencyMs = lastFrameTime > 0 ? now - lastFrameTime : 0;
+  lastFrameTime = now;
   drawHandFrame(canvas, frame, true);
   if (!frame || !features) {
     metrics.textContent = 'No hand detected';
@@ -27,7 +32,7 @@ engine.onFrame((frame, features) => {
   while (frameTimes.length > 1 && frameTimes[0] < frame.timestampMs - 2000) frameTimes.shift();
   const fps = frameTimes.length > 1 ? (frameTimes.length - 1) * 1000 / (frameTimes.at(-1)! - frameTimes[0]) : 0;
   const best = classifyGesture(features);
-  metrics.textContent = `${fps.toFixed(1)} FPS · ${++observed} frames · ${frame.width}×${frame.height} · ${frame.handedness ?? '?'} hand · brightness ${features.brightness.toFixed(2)}`;
+  metrics.textContent = `${fps.toFixed(1)} FPS · latency ${latencyMs.toFixed(1)} ms · ${++observed} frames · ${frame.width}×${frame.height} · ${frame.handedness ?? '?'} hand · brightness ${features.brightness.toFixed(2)}`;
   scores.textContent = GESTURES.map(g => `${g}: ${scoreGesture(features, g).toFixed(2)}`).join('   ') + `\naccepted: ${best?.gesture ?? 'none'}`;
 });
 engine.onRecognition(value => {

@@ -9,8 +9,10 @@ const blend = (previous: Landmark, current: Landmark, alpha: number): Landmark =
 /** Stateful EMA, deliberately reset when a hand disappears or changes. */
 export class LandmarkSmoother {
   private previous: HandFrame | null = null;
+  private readonly alpha: number;
 
-  constructor(private readonly alpha = 0.55) {
+  constructor(alpha = 0.55) {
+    this.alpha = alpha;
     if (alpha <= 0 || alpha > 1) throw new RangeError('EMA alpha must be in (0, 1]');
   }
 

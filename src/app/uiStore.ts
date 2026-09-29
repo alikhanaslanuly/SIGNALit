@@ -11,9 +11,9 @@ interface UiState {
 }
 
 /** Low-frequency UI preferences; hand frames stay outside React/Zustand. */
-export const useUiStore = create<UiState>(set => ({
+export const useUiStore = create<UiState>((set) => ({
   locale: 'ru', speechEnabled: false, mobileTab: 'patient',
-  setLocale: locale => set({ locale }),
-  setSpeechEnabled: speechEnabled => set({ speechEnabled }),
-  setMobileTab: mobileTab => set({ mobileTab }),
+  setLocale: (locale: Locale) => set({ locale }),
+  setSpeechEnabled: (speechEnabled: boolean) => set({ speechEnabled }),
+  setMobileTab: (mobileTab: 'patient' | 'dashboard') => set({ mobileTab }),
 }));

@@ -2,7 +2,7 @@ export const DIAGNOSTIC_CONFIG = {
   minHandSize: 0.10,
   maxHandSize: 0.36,
   minEdgeMargin: 0.055,
-  minBrightness: 0.20,
+  minBrightness: 0.15,
   minPalmFacing: 0.52,
   maxSpeed: 0.80,
   extendedThreshold: 0.72,

@@ -24,22 +24,22 @@ describe('dialog state machine', () => {
     expect(cancelled.state.phase).toBe('IDLE');
     expect(cancelled.messages).toEqual([]);
   });
-  it('sends HELP immediately and permits NO cancellation for three seconds', () => {
+  it('sends HELP immediately and permits NO cancellation for five seconds', () => {
     const sent = transitionDialog(initialDialogState('204'), gesture('HELP', 1000, 'urgent'));
-    expect(sent.state).toMatchObject({ phase: 'CANCEL_WINDOW', cancelUntil: 4000 });
+    expect(sent.state).toMatchObject({ phase: 'CANCEL_WINDOW', cancelUntil: 6000 });
     expect(sent.messages[0]).toMatchObject({ id: 'urgent', kind: 'REQUEST', payload: { request: 'HELP' } });
     expect(transitionDialog(sent.state, gesture('HELP', 2000)).messages).toEqual([]);
     const cancelled = transitionDialog(sent.state, gesture('NO', 3000, 'cancel'));
     expect(cancelled.messages[0]).toMatchObject({ kind: 'STATUS', payload: { requestId: 'urgent', status: 'CANCELLED' } });
     expect(cancelled.state.activeRequest).toBeNull();
-    const expired = transitionDialog(sent.state, { type: 'TICK', now: 4001 });
+    const expired = transitionDialog(sent.state, { type: 'TICK', now: 6001 });
     expect(expired.state.phase).toBe('IDLE');
-    expect(transitionDialog(expired.state, gesture('NO', 5000)).messages).toEqual([]);
+    expect(transitionDialog(expired.state, gesture('NO', 7000)).messages).toEqual([]);
   });
   it('keeps the urgent cancellation window when a nurse asks a question', () => {
     const sent = transitionDialog(initialDialogState('204'), gesture('HELP', 1000, 'urgent'));
     const asked = transitionDialog(sent.state, { type: 'QUESTION', questionId: 'water', now: 2000 });
-    expect(asked.state).toMatchObject({ phase: 'CANCEL_WINDOW', cancelUntil: 4000, questionId: 'water' });
+    expect(asked.state).toMatchObject({ phase: 'CANCEL_WINDOW', cancelUntil: 6000, questionId: 'water' });
     const cancelled = transitionDialog(asked.state, gesture('NO', 3000, 'cancel'));
     expect(cancelled.messages[0]).toMatchObject({ kind: 'STATUS', payload: { status: 'CANCELLED' } });
     expect(cancelled.state).toMatchObject({ phase: 'WAITING_YES_NO', questionId: 'water' });

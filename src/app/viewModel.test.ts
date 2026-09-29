@@ -18,7 +18,7 @@ describe('patient view adapter', () => {
     expect(toPatientView(session.snapshot, 'ru')).toMatchObject({ screen: 'dialog', confirmation: 'WATER' });
     engine.emitConfirmed('NO');
     engine.emitConfirmed('HELP');
-    expect(toPatientView(session.snapshot, 'en')).toMatchObject({ screen: 'dialog', urgent: { gesture: 'HELP', secondsRemaining: 3 } });
+    expect(toPatientView(session.snapshot, 'en')).toMatchObject({ screen: 'dialog', urgent: { gesture: 'HELP', secondsRemaining: 5 } });
     session.dispose();
   });
 });

@@ -23,7 +23,10 @@ const median = (values: number[]) => {
 export class CalibrationSession {
   private yes: HandFeatures[] = [];
   private no: HandFeatures[] = [];
-  constructor(readonly startedAt: number) {}
+  readonly startedAt: number;
+  constructor(startedAt: number) {
+    this.startedAt = startedAt;
+  }
   target: 'YES' | 'NO' = 'YES';
   completed = false;
   get sampleCount(): number { return this.yes.length + this.no.length; }

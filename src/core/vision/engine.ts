@@ -45,7 +45,10 @@ export class VisionEngine implements Engine {
   private brightness = 0.5;
   private brightnessAt = -Infinity;
 
-  constructor(private readonly video: HTMLVideoElement, options: VisionEngineOptions = {}) {
+  private video: HTMLVideoElement;
+
+  constructor(video: HTMLVideoElement, options: VisionEngineOptions = {}) {
+    this.video = video;
     this.baseUrl = options.baseUrl ?? '/';
     this.intervalMs = 1000 / Math.max(1, Math.min(60, options.targetFps ?? 30));
     this.smoother = new LandmarkSmoother(options.smoothingAlpha ?? 0.55);

@@ -66,7 +66,7 @@ export function transitionDialog(state: DialogState, event: DialogEvent): Dialog
     const activeRequest: ActiveRequest = { id: event.messageId, gesture: event.gesture, status: 'PENDING', ts: event.now };
     const message: SignalMessage = { id: event.messageId, ts: event.now, room: current.room,
       kind: 'REQUEST', payload: { request: event.gesture } };
-    return { state: { ...current, phase: 'CANCEL_WINDOW', activeRequest, cancelUntil: event.now + 3000 }, messages: [message] };
+    return { state: { ...current, phase: 'CANCEL_WINDOW', activeRequest, cancelUntil: event.now + 5000 }, messages: [message] };
   }
   if (current.phase === 'WAITING_YES_NO') {
     if (event.gesture !== 'YES' && event.gesture !== 'NO') return { state: current, messages: noMessages };

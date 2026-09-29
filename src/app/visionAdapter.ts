@@ -27,7 +27,12 @@ export class SignalEngineAdapter implements RuntimeEngine {
   private handSizeBaseline: number | undefined;
   private lastHintKey = '';
 
-  constructor(private readonly vision: VisionLike, private readonly canvas?: HTMLCanvasElement | null) {
+  private vision: VisionLike;
+  private canvas?: HTMLCanvasElement | null;
+
+  constructor(vision: VisionLike, canvas?: HTMLCanvasElement | null) {
+    this.vision = vision;
+    this.canvas = canvas;
     this.unsubscribe = [
       vision.onFrame((frame, features) => {
         this.latestFeatures = features;

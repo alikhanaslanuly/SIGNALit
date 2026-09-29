@@ -14,7 +14,7 @@ export interface FeatureSample {
 
 /** Manual, development-only fixture recorder. No camera pixels are stored. */
 export function createDevFeatureRecorder(engine: Engine) {
-  const isDevelopment = (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV === true;
+  const isDevelopment = (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV ?? (process.env.NODE_ENV !== 'production');
   if (!isDevelopment) throw new Error('Feature recording is available only in Vite development mode');
   const samples: FeatureSample[] = [];
   let latest: { frame: HandFrame; features: HandFeatures } | null = null;
