@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest';
+import { en } from './en';
+import { ru } from './ru';
 import { getHintText, getText } from './index';
 
+const keyPaths = (value: unknown, prefix = ''): string[] => {
+  if (!value || typeof value !== 'object') return [prefix];
+  return Object.entries(value).flatMap(([key, child]) => keyPaths(child, prefix ? `${prefix}.${key}` : key));
+};
+
 describe('patient translations', () => {
+  it('keeps every nested RU and EN key in parity', () => {
+    expect(keyPaths(en).sort()).toEqual(keyPaths(ru).sort());
+  });
   it('translates all six gestures in RU and EN', () => {
     for (const locale of ['ru', 'en'] as const) {
       for (const gesture of ['YES', 'NO', 'HELP', 'PAIN', 'WATER', 'TOILET'] as const) {
@@ -16,4 +26,10 @@ describe('patient translations', () => {
   it('names a training target when the current gesture is out of context', () => {
     expect(getHintText('en', { code: 'EXPECTED_GESTURES', layer: 4, severity: 'warn', params: { gestures: 'WATER' } })).toBe('Show WATER now');
   });
+});
+
+import { productEn, productRu } from './product';
+it('provides matching non-empty RU and EN product dictionaries', () => {
+  expect(Object.keys(productRu).sort()).toEqual(Object.keys(productEn).sort());
+  for (const value of Object.values(productRu)) expect(value.length).toBeGreaterThan(0);
 });

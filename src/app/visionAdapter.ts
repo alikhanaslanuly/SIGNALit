@@ -1,6 +1,8 @@
+import { QualityRecorder } from './quality';
 import type { Engine, HandFeatures, HandFrame, Hint, Recognition, RuntimeEngine } from '../contracts';
 import { diagnose, HintController, type HintDisplay } from '../core/errors';
 import type { Recognition as VisionRecognition } from '../core/gestures';
+import { correctionFinger, type FingerHighlight } from '../core/vision/correction';
 import { drawHandFrame } from '../core/vision';
 import type { HandFeatures as VisionFeatures, HandFrame as VisionFrame, VisionContext } from '../core/vision/types';
 
@@ -15,6 +17,7 @@ export interface VisionLike {
 
 /** Adapts A's camera model to the common Engine and B's hint stream. */
 export class SignalEngineAdapter implements RuntimeEngine {
+  private readonly quality = new QualityRecorder();
   private frameListeners = new Set<Parameters<Engine['onFrame']>[0]>();
   private recognitionListeners = new Set<Parameters<Engine['onRecognition']>[0]>();
   private hintListeners = new Set<Parameters<Engine['onHints']>[0]>();
@@ -26,6 +29,9 @@ export class SignalEngineAdapter implements RuntimeEngine {
   private latestFeatures: VisionFeatures | null = null;
   private handSizeBaseline: number | undefined;
   private lastHintKey = '';
+  private highlight: FingerHighlight | null = null;
+  private correctedUntil = 0;
+  private latestFrame: VisionFrame | null = null;
 
   private vision: VisionLike;
   private canvas?: HTMLCanvasElement | null;
@@ -36,7 +42,8 @@ export class SignalEngineAdapter implements RuntimeEngine {
     this.unsubscribe = [
       vision.onFrame((frame, features) => {
         this.latestFeatures = features;
-        if (this.canvas) drawHandFrame(this.canvas, frame, true);
+        this.latestFrame = frame;
+        this.quality.frame(Boolean(frame));
         const mapped: HandFrame | null = frame ? {
           t: frame.timestampMs, landmarks: frame.landmarks.map(({ x, y, z }) => ({ x, y, z })),
           handedness: frame.handedness, score: frame.handednessScore ?? 0,
@@ -45,12 +52,23 @@ export class SignalEngineAdapter implements RuntimeEngine {
       }),
       vision.onRecognition(value => {
         const recognition = value as Recognition;
+        this.quality.recognition(recognition);
         for (const cb of this.recognitionListeners) cb(recognition);
         const raw = diagnose(this.latestFeatures, value, { ...this.context, handSizeBaseline: this.handSizeBaseline });
         const display = this.hintController.update(raw, performance.now());
+        const now = performance.now();
+        const finger = correctionFinger(display.hint, recognition.state);
+        if (recognition.state === 'confirmed') this.highlight = null;
+        else if (finger) this.highlight = { finger, state: 'correcting' };
+        else if (display.corrected && this.highlight) {
+          this.highlight = { ...this.highlight, state: 'corrected' };
+          this.correctedUntil = now + 900;
+        } else if (display.hint || now >= this.correctedUntil) this.highlight = null;
+        if (this.canvas) drawHandFrame(this.canvas, this.latestFrame, true, this.highlight);
         const key = JSON.stringify({ hint: display.hint, corrected: display.corrected });
         if (key !== this.lastHintKey) {
           this.lastHintKey = key;
+          this.quality.hint(display.hint);
           const hints: Hint[] = display.hint ? [display.hint] : [];
           for (const cb of this.hintListeners) cb(hints);
           for (const cb of this.hintDisplayListeners) cb(display);
@@ -68,7 +86,9 @@ export class SignalEngineAdapter implements RuntimeEngine {
   onHintDisplay(cb: (display: HintDisplay) => void): () => void { this.hintDisplayListeners.add(cb); return () => this.hintDisplayListeners.delete(cb); }
   onError(cb: (error: Error) => void): () => void { this.errorListeners.add(cb); return () => this.errorListeners.delete(cb); }
   setContext(context: Parameters<Engine['setContext']>[0]): void {
+    if (this.context.target === context.target && JSON.stringify(this.context.expected) === JSON.stringify(context.expected)) return;
     this.context = context;
+    this.highlight = null;
     this.hintController.reset();
     this.lastHintKey = '';
     this.vision.setContext(context);

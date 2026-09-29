@@ -29,4 +29,13 @@ describe('NurseDashboard', () => {
     expect(html).toContain('Resolved in 00:03');
     expect(html).not.toContain('Waiting 01:39');
   });
+  it('keeps the shell visible for loading, error, and empty states', () => {
+    const loading = renderToStaticMarkup(<NurseDashboard state={emptyDashboardState()} now={1000} loading onQuestion={() => {}} onStatus={() => {}} />);
+    const error = renderToStaticMarkup(<NurseDashboard state={emptyDashboardState()} now={1000} error onRetry={() => {}} onQuestion={() => {}} onStatus={() => {}} />);
+    const empty = renderToStaticMarkup(<NurseDashboard state={emptyDashboardState()} now={1000} onQuestion={() => {}} onStatus={() => {}} />);
+    for (const html of [loading, error, empty]) expect(html).toContain('Nurse station');
+    expect(loading).toContain('Loading requests');
+    expect(error).toContain('Retry');
+    expect(empty).toContain('No requests yet');
+  });
 });

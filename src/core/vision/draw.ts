@@ -1,4 +1,5 @@
 import type { HandFrame } from './types';
+import { FINGER_LANDMARKS, type FingerHighlight } from './correction';
 
 const CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
   [0, 1], [1, 2], [2, 3], [3, 4],
@@ -9,7 +10,7 @@ const CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
 ];
 
 /** Optional canvas overlay; consumers never need a MediaPipe import. */
-export function drawHandFrame(canvas: HTMLCanvasElement, frame: HandFrame | null, mirrorX = false): void {
+export function drawHandFrame(canvas: HTMLCanvasElement, frame: HandFrame | null, mirrorX = false, highlight: FingerHighlight | null = null): void {
   const width = frame?.width || canvas.width;
   const height = frame?.height || canvas.height;
   if (canvas.width !== width) canvas.width = width;
@@ -17,7 +18,9 @@ export function drawHandFrame(canvas: HTMLCanvasElement, frame: HandFrame | null
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   ctx.clearRect(0, 0, width, height);
-  if (!frame) return;
+  if (!frame || frame.landmarks.length !== 21 || frame.landmarks.some(point => !Number.isFinite(point.x) || !Number.isFinite(point.y))) return;
+  const targets = highlight ? FINGER_LANDMARKS[highlight.finger] : [];
+  const correctionColor = highlight?.state === 'corrected' ? '#53f4b7' : '#ffbd45';
   const position = (index: number) => ({
     x: (mirrorX ? 1 - frame.landmarks[index].x : frame.landmarks[index].x) * width,
     y: frame.landmarks[index].y * height,
@@ -25,6 +28,9 @@ export function drawHandFrame(canvas: HTMLCanvasElement, frame: HandFrame | null
   ctx.strokeStyle = '#29e1b2';
   ctx.lineWidth = Math.max(2, width / 320);
   for (const [a, b] of CONNECTIONS) {
+    const targeted = targets.includes(a) && targets.includes(b);
+    ctx.strokeStyle = targeted ? correctionColor : '#78d6dc';
+    ctx.lineWidth = Math.max(2, width / 320) * (targeted ? 3 : 1);
     const start = position(a);
     const end = position(b);
     ctx.beginPath();
@@ -34,9 +40,10 @@ export function drawHandFrame(canvas: HTMLCanvasElement, frame: HandFrame | null
   }
   ctx.fillStyle = '#ffffff';
   for (let i = 0; i < 21; i++) {
+    ctx.fillStyle = targets.includes(i) ? correctionColor : '#ffffff';
     const point = position(i);
     ctx.beginPath();
-    ctx.arc(point.x, point.y, Math.max(2, width / 220), 0, Math.PI * 2);
+    ctx.arc(point.x, point.y, Math.max(2, width / 220) * (targets.includes(i) ? 2 : 1), 0, Math.PI * 2);
     ctx.fill();
   }
 }

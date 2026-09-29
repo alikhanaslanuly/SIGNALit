@@ -26,7 +26,7 @@ export function getHintText(locale: Locale, hint: Hint): string {
       case 'THUMB_UP': return 'Поднимите большой палец выше';
       case 'THUMB_DOWN': return 'Опустите большой палец вниз';
       case 'EXPECTED_GESTURES': return expected.includes('YES') && expected.includes('NO')
-        ? 'Сейчас ответьте: 👍 Да или 👎 Нет'
+        ? 'Сейчас ответьте: да или нет'
         : `Сейчас покажите: ${expected.map(gesture => t.gestures[gesture].label).join(' или ')}`;
       default: return 'Покажите жест ещё раз';
     }
@@ -44,7 +44,7 @@ export function getHintText(locale: Locale, hint: Hint): string {
     case 'THUMB_UP': return 'Point your thumb upward';
     case 'THUMB_DOWN': return 'Point your thumb downward';
     case 'EXPECTED_GESTURES': return expected.includes('YES') && expected.includes('NO')
-      ? 'Answer now: 👍 Yes or 👎 No'
+      ? 'Answer now: yes or no'
       : `Show ${expected.map(gesture => t.gestures[gesture].label).join(' or ')} now`;
     default: return 'Show the gesture again';
   }

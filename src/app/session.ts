@@ -4,7 +4,8 @@ import { classifyGesture } from '../core/gestures';
 import { initialDialogState, transitionDialog, expectedDialogGestures, QUESTIONS, type DialogState } from '../modes/dialog';
 import { CalibrationSession, TrainingSession, saveBestTrainingResult, type TrainingResult, type TrainingState } from '../modes/training';
 import { applyDashboardMessage, emptyDashboardState, type DashboardState } from '../ui/dashboard/model';
-import type { Locale } from '../ui/i18n';
+import { getText, type Locale } from '../ui/i18n';
+import { cameraFailure } from '../core/vision/cameraFailure';
 import type { Transport } from '../transport';
 
 export type PatientScreen = 'start' | 'calibration' | 'training' | 'results' | 'dialog';
@@ -12,7 +13,7 @@ export interface SessionSnapshot {
   screen: PatientScreen;
   cameraStarting: boolean;
   cameraError: string | null;
-  calibration: { target: 'YES' | 'NO'; step: 1 | 2; progress: number } | null;
+  calibration: { target: 'YES' | 'NO'; step: 1 | 2; progress: number; quality?: CalibrationSession['quality']; failed?: boolean } | null;
   training: TrainingState | null;
   result: TrainingResult | null;
   bestResult: boolean;
@@ -53,6 +54,7 @@ export class SignalSession {
   private locale: Locale = 'ru';
   private audioEnabled = false;
   private started = false;
+  private latestRequestTs = -Infinity;
   private startEpoch = 0;
   private currentCalibrationTarget: 'YES' | 'NO' | null = null;
   snapshot: SessionSnapshot;
@@ -70,7 +72,7 @@ export class SignalSession {
       recognition: noRecognition, hint: null, corrected: false, feedback: null, now: this.now() };
     this.unsubscribe.push(this.transport.subscribe(message => this.receive(message)));
     if (this.engine) {
-      this.unsubscribe.push(this.engine.onFrame((_frame, features) => this.onFrame(features)));
+      this.unsubscribe.push(this.engine.onFrame((frame, features) => this.onFrame(frame?.landmarks.length === 21 && frame.landmarks.every(point => [point.x, point.y, point.z].every(Number.isFinite)) ? features : null)));
       this.unsubscribe.push(this.engine.onRecognition(value => this.onRecognition(value)));
       this.unsubscribe.push(this.engine.onHints(hints => {
         const hint = hints[0] ?? null;
@@ -97,7 +99,7 @@ export class SignalSession {
     for (const cb of this.listeners) cb();
   }
   setLocale(locale: Locale): void { this.locale = locale; }
-  setAudioEnabled(value: boolean): void { this.audioEnabled = value; }
+  setAudioEnabled(value: boolean): void { this.audioEnabled = value; if (!value && typeof window !== 'undefined') window.speechSynthesis?.cancel(); }
 
   private handleEngineError(error: unknown): void {
     this.startEpoch++;
@@ -106,7 +108,7 @@ export class SignalSession {
     this.trainingSession = null;
     this.currentCalibrationTarget = null;
     this.update({ screen: 'start', cameraStarting: false,
-      cameraError: error instanceof Error ? error.message : String(error),
+      cameraError: cameraFailure(error) === 'unknown' ? (error instanceof Error ? error.message : String(error)) : cameraFailure(error),
       calibration: null, training: null, result: null, hint: null,
       recognition: noRecognition, feedback: null });
     this.engine?.stop();
@@ -135,6 +137,13 @@ export class SignalSession {
     }
   }
 
+  retryCalibration(): void {
+    this.calibrationSession = new CalibrationSession(this.now());
+    this.currentCalibrationTarget = 'YES';
+    this.engine?.setContext({ target: 'YES', expected: ['YES'] });
+    this.update({ screen: 'calibration', calibration: { target: 'YES', step: 1, progress: 0 }, hint: null });
+  }
+
   private onFrame(features: HandFeatures | null): void {
     if (this.snapshot.screen !== 'calibration' || !this.calibrationSession) return;
     const gesture = features ? classifyGesture(features)?.gesture ?? null : null;
@@ -156,8 +165,8 @@ export class SignalSession {
       this.engine?.setContext({ target: this.currentCalibrationTarget, expected: [this.currentCalibrationTarget] });
     }
     const progress = this.calibrationSession.progress;
-    if (Math.abs(progress - (this.snapshot.calibration?.progress ?? 0)) > 0.03 || this.snapshot.calibration?.target !== this.calibrationSession.target) {
-      this.update({ calibration: { target: this.calibrationSession.target, step: this.calibrationSession.target === 'YES' ? 1 : 2, progress } });
+    if (Math.abs(progress - (this.snapshot.calibration?.progress ?? 0)) > 0.03 || this.snapshot.calibration?.target !== this.calibrationSession.target || this.snapshot.calibration?.quality !== this.calibrationSession.quality || this.snapshot.calibration?.failed !== this.calibrationSession.failed) {
+      this.update({ calibration: { target: this.calibrationSession.target, step: this.calibrationSession.target === 'YES' ? 1 : 2, progress, quality: this.calibrationSession.quality, failed: this.calibrationSession.failed } });
     }
   }
 
@@ -199,7 +208,7 @@ export class SignalSession {
     this.update({ feedback: recognition.gesture, now: eventNow });
     if (this.audioEnabled && typeof window !== 'undefined') {
       playFeedbackSound(recognition.gesture === 'HELP' || recognition.gesture === 'PAIN' ? 'urgent' : 'success');
-      speakFeedback(recognition.gesture, this.locale);
+      speakFeedback(getText(this.locale).gestures[recognition.gesture].label, this.locale);
     }
     if (this.snapshot.screen !== 'dialog') return;
     const transition = transitionDialog(this.snapshot.dialog, { type: 'GESTURE', gesture: recognition.gesture,
@@ -207,24 +216,37 @@ export class SignalSession {
     this.update({ dialog: transition.state });
     this.engine?.setContext({ expected: expectedDialogGestures(transition.state) });
     for (const message of transition.messages) this.transport.send(message);
-    if (transition.messages.some(message => message.kind === 'REQUEST') && this.audioEnabled && typeof window !== 'undefined') {
-      playFeedbackSound('request');
-      speakFeedback(this.locale === 'ru' ? 'Запрос отправлен' : 'Request sent', this.locale);
-    }
   }
 
   private receive(message: SignalMessage): void {
     if (message.room !== this.snapshot.dialog.room) return;
     const dashboard = applyDashboardMessage(this.snapshot.dashboard, message);
     let dialog = this.snapshot.dialog;
+    if (message.kind === 'REQUEST' && dialog.activeRequest && typeof message.payload.localRequestId === 'string' && dialog.activeRequest.id === message.payload.localRequestId) {
+      dialog = { ...dialog, activeRequest: { ...dialog.activeRequest!, id: message.id } };
+    }
+    if (message.kind === 'REQUEST' && typeof message.payload.request === 'string' &&
+      (message.payload.request === 'HELP' || message.payload.request === 'PAIN' || message.payload.request === 'TOILET' || message.payload.request === 'WATER') &&
+      message.payload.status !== 'CANCELLED' && message.ts >= this.latestRequestTs && (!dialog.activeRequest || message.ts > dialog.activeRequest.ts)) {
+      const status = message.payload.status === 'ACKNOWLEDGED' || message.payload.status === 'COMPLETED' ? message.payload.status : 'PENDING';
+      dialog = { ...dialog, activeRequest: { id: typeof message.payload.requestId === 'string' ? message.payload.requestId : message.id, gesture: message.payload.request, status, ts: message.ts } };
+    }
+    if (message.kind === 'REQUEST') this.latestRequestTs = Math.max(this.latestRequestTs, message.ts);
     if (message.kind === 'QUESTION' && typeof message.payload.questionId === 'string') {
       dialog = transitionDialog(dialog, { type: 'QUESTION', questionId: message.payload.questionId, now: message.ts }).state;
+    }
+    if (message.kind === 'ANSWER' && message.payload.questionId === dialog.questionId) {
+      dialog = { ...dialog, questionId: null, phase: 'IDLE' };
     }
     if (message.kind === 'STATUS' && typeof message.payload.requestId === 'string' &&
       (message.payload.status === 'PENDING' || message.payload.status === 'ACKNOWLEDGED' ||
         message.payload.status === 'COMPLETED' || message.payload.status === 'CANCELLED')) {
       dialog = transitionDialog(dialog, { type: 'STATUS', requestId: message.payload.requestId,
-        status: message.payload.status, now: message.ts }).state;
+        status: message.payload.status, now: message.ts,
+        ...(message.payload.note === 'COMING' || message.payload.note === 'WAIT' ? { note: message.payload.note } : {}) }).state;
+    }
+    if (!message.payload.hydrated && dialog.activeRequest?.note && dialog.activeRequest.note !== this.snapshot.dialog.activeRequest?.note && this.audioEnabled && typeof window !== 'undefined') {
+      speakFeedback(dialog.activeRequest.note === 'COMING' ? (this.locale === 'ru' ? 'Иду к вам' : "I'm coming") : (this.locale === 'ru' ? 'Пожалуйста, подождите' : 'Please wait a moment'), this.locale);
     }
     const dialogChanged = dialog !== this.snapshot.dialog;
     this.update({ dashboard, dialog });
@@ -241,9 +263,15 @@ export class SignalSession {
     this.transport.send({ id: this.makeId(), ts: this.now(), room: this.snapshot.dialog.room,
       kind: 'STATUS', payload: { requestId, status } });
   }
+  setRequestReply(requestId: string, note: 'COMING' | 'WAIT'): void {
+    const request = this.snapshot.dashboard.requests.find(value => value.id === requestId);
+    if (!request || request.status === 'COMPLETED' || request.status === 'CANCELLED') return;
+    this.transport.send({ id: this.makeId(), ts: this.now(), room: request.room,
+      kind: 'STATUS', payload: { requestId, status: request.status, note } });
+  }
   tick(): void {
     const now = this.now();
-    if (this.snapshot.screen === 'calibration') this.advanceCalibration(null, null);
+
     const transition = transitionDialog(this.snapshot.dialog, { type: 'TICK', now });
     const dialogChanged = transition.state !== this.snapshot.dialog;
     const clearFeedback = this.snapshot.feedback && now >= this.feedbackUntil;

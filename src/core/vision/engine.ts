@@ -1,3 +1,4 @@
+import { cameraFailure, visionError } from './cameraFailure';
 import type { FilesetResolver, HandLandmarker, HandLandmarkerResult } from '@mediapipe/tasks-vision';
 import { classifyGesture, HoldDetector, type Recognition } from '../gestures';
 import { extractHandFeatures } from './features';
@@ -8,7 +9,9 @@ type FrameListener = (frame: HandFrame | null, features: HandFeatures | null) =>
 type RecognitionListener = (recognition: Recognition) => void;
 type WasmFileset = Awaited<ReturnType<typeof FilesetResolver.forVisionTasks>>;
 
+export interface CameraState { permission: 'unknown' | 'granted' | 'denied'; stream: boolean; model: boolean }
 export interface VisionEngineOptions {
+  onState?: (state: CameraState) => void;
   /** Vite's import.meta.env.BASE_URL; defaults to /. */
   baseUrl?: string;
   targetFps?: number;
@@ -44,11 +47,16 @@ export class VisionEngine implements Engine {
   private previousFrame: HandFrame | null = null;
   private brightness = 0.5;
   private brightnessAt = -Infinity;
+  private lastFrameAt = 0;
+  private cameraState: CameraState = { permission: 'unknown', stream: false, model: false };
+  private readonly onState?: (state: CameraState) => void;
+  private updateCamera(patch: Partial<CameraState>): void { this.cameraState = { ...this.cameraState, ...patch }; this.onState?.(this.cameraState); }
 
   private video: HTMLVideoElement;
 
   constructor(video: HTMLVideoElement, options: VisionEngineOptions = {}) {
     this.video = video;
+    this.onState = options.onState;
     this.baseUrl = options.baseUrl ?? '/';
     this.intervalMs = 1000 / Math.max(1, Math.min(60, options.targetFps ?? 30));
     this.smoother = new LandmarkSmoother(options.smoothingAlpha ?? 0.55);
@@ -65,6 +73,7 @@ export class VisionEngine implements Engine {
         // video.play() may reject after stop() aborts playback. That is a
         // normal cancellation, not a camera failure for the caller.
         if (generation !== this.generation) return;
+        if (cameraFailure(error) === 'blocked') this.updateCamera({ permission: 'denied' });
         this.emitError(error);
         this.stop();
         throw error;
@@ -78,7 +87,7 @@ export class VisionEngine implements Engine {
 
   private async startInternal(generation: number): Promise<void> {
     if (!navigator.mediaDevices?.getUserMedia) {
-      throw new Error('Camera API is unavailable. Use HTTPS or localhost and allow camera access.');
+      throw visionError('NotSupportedError', 'Camera API unavailable');
     }
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
@@ -89,12 +98,19 @@ export class VisionEngine implements Engine {
       return;
     }
     this.stream = stream;
+    this.updateCamera({ permission: 'granted', stream: true });
+    for (const track of stream.getTracks()) track.addEventListener?.('ended', () => {
+      if (generation !== this.generation) return;
+      this.emitError(visionError('StreamInterruptedError', 'Camera stream interrupted'));
+      this.stop();
+    }, { once: true });
     this.video.muted = true;
     this.video.playsInline = true;
     this.video.srcObject = stream;
     await this.video.play();
     if (generation !== this.generation) return;
 
+    try {
     const { FilesetResolver } = await import('@mediapipe/tasks-vision');
     const fileset = await FilesetResolver.forVisionTasks(localPath(this.baseUrl, 'wasm'));
     if (generation !== this.generation) return;
@@ -105,8 +121,11 @@ export class VisionEngine implements Engine {
       return;
     }
     this.landmarker = landmarker;
+    this.updateCamera({ model: true });
+    this.lastFrameAt = performance.now();
     this.running = true;
     this.schedule(generation);
+    } catch { throw visionError('ModelError', 'Hand tracking could not start'); }
   }
 
   private async createLandmarker(fileset: WasmFileset): Promise<HandLandmarker> {
@@ -145,6 +164,10 @@ export class VisionEngine implements Engine {
   private tick(generation: number): void {
     if (generation !== this.generation || !this.running || !this.landmarker) return;
     const now = performance.now();
+    if (document.hidden || this.video.currentTime !== this.lastVideoTime) this.lastFrameAt = now;
+    if (now - this.lastFrameAt > 10000) {
+      this.emitError(visionError('StreamInterruptedError', 'Camera frames stopped')); this.stop(); return;
+    }
     if (this.video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA &&
         this.video.currentTime !== this.lastVideoTime &&
         now - this.lastInferenceAt >= this.intervalMs) {
@@ -166,7 +189,7 @@ export class VisionEngine implements Engine {
 
   private async recoverInference(generation: number, error: unknown): Promise<void> {
     if (this.delegate !== 'GPU' || !this.wasmFileset) {
-      this.emitError(error);
+      this.emitError(visionError('ModelError', 'Hand tracking interrupted'));
       this.stop();
       return;
     }
@@ -188,7 +211,7 @@ export class VisionEngine implements Engine {
       this.lastVideoTime = -1;
       this.schedule(generation);
     } catch (fallbackError) {
-      this.emitError(fallbackError);
+      this.emitError(visionError('ModelError', 'Hand tracking interrupted'));
       this.stop();
     }
   }
@@ -246,6 +269,7 @@ export class VisionEngine implements Engine {
     this.generation++;
     this.startPromise = null;
     this.running = false;
+    this.updateCamera({ stream: false, model: false });
     if (this.rafId !== null) cancelAnimationFrame(this.rafId);
     this.rafId = null;
     this.landmarker?.close();
