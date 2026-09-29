@@ -1,6 +1,11 @@
+import { productEn } from './product';
 export const en = {
-  brand: 'SIGNAL',
+  brand: 'SIGNALit',
+  product: productEn,
+  eyebrow: 'Gesture communication with your nurse',
   tagline: 'Communicate with gestures when speaking is hard.',
+  intro: 'The camera recognizes 6 simple gestures and sends your request to the nurse.',
+  vocabulary: 'What you can communicate',
   turnOnCamera: 'Turn on camera',
   startingCamera: 'Starting camera…',
   privacy: 'Video is processed on your device.',
@@ -14,12 +19,26 @@ export const en = {
   requestCompleted: 'Completed', trainingComplete: 'Practice complete',
   averageTime: 'Average time', errorsCorrected: 'Corrections made', hintsShown: 'Hints shown',
   bestResult: 'Best result!', startDialog: 'Start communicating', repeatTraining: 'Practice again',
-  correct: 'Correct!', language: 'Language', speechOn: 'Turn on speech', speechOff: 'Turn off speech',
+  correct: 'Correct!', success: 'Great', guidanceTitle: 'Adjust your gesture', language: 'Language', speechOn: 'Turn on speech', speechOff: 'Turn off speech',
+  cameraPreview: 'Camera preview', theme: 'Theme', lightTheme: 'Light', darkTheme: 'Dark',
+  calibrationFallback: "We couldn't complete the personal setup. Continuing with the standard settings.",
+  demoBadge: 'Demo without camera', nurse: 'Nurse', nurseComing: "I'm coming", nurseWait: 'Please wait a moment',
   awaitingGesture: 'Show a gesture to the camera',
   gestures: {
-    YES: { icon: '👍', label: 'YES' }, NO: { icon: '👎', label: 'NO' },
-    HELP: { icon: '✋', label: 'HELP' }, PAIN: { icon: '✊', label: 'PAIN' },
-    WATER: { icon: '💧', label: 'WATER' }, TOILET: { icon: '🚻', label: 'TOILET' },
+    YES: { icon: '👍', label: 'YES' }, NO: { icon: '👎', label: 'NO' }, HELP: { icon: '✋', label: 'HELP' }, PAIN: { icon: '✊', label: 'PAIN' }, WATER: { icon: '💧', label: 'WATER' }, TOILET: { icon: '☝️', label: 'TOILET' },
+  },
+  gestureHints: {
+    YES: 'thumb up', NO: 'thumb down', HELP: 'open hand', PAIN: 'make a fist', TOILET: 'index finger up', WATER: 'show 3 fingers',
   },
   fingers: { thumb: 'thumb', index: 'index finger', middle: 'middle finger', ring: 'ring finger', pinky: 'little finger' },
+  dashboard: {
+    station: 'Nurse station', requests: 'Patient requests', active: 'active',
+    empty: 'No requests yet. New patient signals will appear here.', room: 'Room', waiting: 'Waiting', resolvedIn: 'Resolved in',
+    acknowledge: 'Acknowledge', complete: 'Complete', questionLibrary: 'Questions for patient',
+    questionHint: 'Ask a question the patient can answer with yes or no.', recentDialog: 'Recent dialog', nurse: 'Nurse', patient: 'Patient',
+    statuses: { PENDING: 'Pending', ACKNOWLEDGED: 'Acknowledged', COMPLETED: 'Completed' },
+    demoTabs: { patient: 'Patient', nurse: 'Nurse' }, quickReplies: { coming: "I'm coming", wait: 'Please wait a moment' },
+    customQuestion: 'Your question', send: 'Send', soundOn: 'Turn sound on', soundOff: 'Turn sound off', overdue: 'Needs attention',
+    filterAll: 'All', filterActive: 'Active', filterCompleted: 'Completed', demoBadge: 'Demo without camera',
+  },
 } as const;

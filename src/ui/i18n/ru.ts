@@ -1,6 +1,11 @@
+import { productRu } from './product';
 export const ru = {
-  brand: 'SIGNAL',
+  brand: 'SIGNALit',
+  product: productRu,
+  eyebrow: 'Жестовая связь с медсестрой',
   tagline: 'Общайтесь жестами, когда говорить трудно.',
+  intro: 'Камера распознаёт 6 простых жестов и передаёт ваш запрос медсестре.',
+  vocabulary: 'Что можно сообщить',
   turnOnCamera: 'Включить камеру',
   startingCamera: 'Запускаем камеру…',
   privacy: 'Видео обрабатывается на вашем устройстве.',
@@ -14,12 +19,26 @@ export const ru = {
   requestCompleted: 'Выполнено', trainingComplete: 'Тренировка завершена',
   averageTime: 'Среднее время', errorsCorrected: 'Исправлено ошибок', hintsShown: 'Подсказок',
   bestResult: 'Лучший результат!', startDialog: 'Начать общение', repeatTraining: 'Повторить тренировку',
-  correct: 'Верно!', language: 'Язык', speechOn: 'Включить озвучивание', speechOff: 'Выключить озвучивание',
+  correct: 'Верно!', success: 'Отлично', guidanceTitle: 'Поправьте жест', language: 'Язык', speechOn: 'Включить озвучивание', speechOff: 'Выключить озвучивание',
+  cameraPreview: 'Предпросмотр камеры', theme: 'Тема', lightTheme: 'Светлая', darkTheme: 'Тёмная',
+  calibrationFallback: 'Не удалось настроить камеру под вашу руку. Продолжаем со стандартными настройками.',
+  demoBadge: 'Демо без камеры', nurse: 'Медсестра', nurseComing: 'Иду к вам', nurseWait: 'Подождите немного',
   awaitingGesture: 'Покажите жест в камеру',
   gestures: {
-    YES: { icon: '👍', label: 'ДА' }, NO: { icon: '👎', label: 'НЕТ' },
-    HELP: { icon: '✋', label: 'ПОМОЩЬ' }, PAIN: { icon: '✊', label: 'БОЛЬ' },
-    WATER: { icon: '💧', label: 'ВОДА' }, TOILET: { icon: '🚻', label: 'ТУАЛЕТ' },
+    YES: { icon: '👍', label: 'ДА' }, NO: { icon: '👎', label: 'НЕТ' }, HELP: { icon: '✋', label: 'ПОМОЩЬ' }, PAIN: { icon: '✊', label: 'БОЛЬ' }, WATER: { icon: '💧', label: 'ВОДА' }, TOILET: { icon: '☝️', label: 'ТУАЛЕТ' },
+  },
+  gestureHints: {
+    YES: 'большой палец вверх', NO: 'большой палец вниз', HELP: 'открытая ладонь', PAIN: 'сожмите кулак', TOILET: 'указательный палец вверх', WATER: 'покажите 3 пальца',
   },
   fingers: { thumb: 'большой палец', index: 'указательный палец', middle: 'средний палец', ring: 'безымянный палец', pinky: 'мизинец' },
+  dashboard: {
+    station: 'Пост медсестры', requests: 'Запросы пациентов', active: 'активных',
+    empty: 'Пока запросов нет. Новые сигналы пациента появятся здесь.', room: 'Палата', waiting: 'Ожидание', resolvedIn: 'Выполнено за',
+    acknowledge: 'Принять', complete: 'Завершить', questionLibrary: 'Вопросы пациенту',
+    questionHint: 'Задайте вопрос, на который можно ответить да или нет.', recentDialog: 'История диалога', nurse: 'Медсестра', patient: 'Пациент',
+    statuses: { PENDING: 'Ожидает', ACKNOWLEDGED: 'Принят', COMPLETED: 'Выполнен' },
+    demoTabs: { patient: 'Пациент', nurse: 'Медсестра' }, quickReplies: { coming: 'Иду к вам', wait: 'Подождите немного' },
+    customQuestion: 'Ваш вопрос', send: 'Отправить', soundOn: 'Включить звук', soundOff: 'Выключить звук', overdue: 'Требует внимания',
+    filterAll: 'Все', filterActive: 'Активные', filterCompleted: 'Завершённые', demoBadge: 'Демо без камеры',
+  },
 } as const;

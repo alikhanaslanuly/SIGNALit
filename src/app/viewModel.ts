@@ -5,7 +5,7 @@ import type { SessionSnapshot } from './session';
 
 export function toPatientView(snapshot: SessionSnapshot, locale: Locale): PatientViewState {
   if (snapshot.screen === 'start') return { screen: 'start', cameraStarting: snapshot.cameraStarting,
-    ...(snapshot.cameraError ? { cameraError: snapshot.cameraError } : {}) };
+    ...(snapshot.cameraError ? { cameraError: snapshot.cameraError } : {}), ...(snapshot.dialog.activeRequest ? { request: snapshot.dialog.activeRequest } : {}) };
   if (snapshot.screen === 'calibration' && snapshot.calibration) {
     return { screen: 'calibration', ...snapshot.calibration, recognition: snapshot.recognition,
       hint: snapshot.hint, corrected: snapshot.corrected, feedback: snapshot.feedback };
@@ -32,7 +32,7 @@ export function toPatientView(snapshot: SessionSnapshot, locale: Locale): Patien
     if (dialog.phase === 'WAITING_YES_NO' && dialog.questionId) {
       return { ...active, question: getQuestion(dialog.questionId, locale) ?? undefined };
     }
-    if (dialog.activeRequest) return { ...active, request: { gesture: dialog.activeRequest.gesture, status: dialog.activeRequest.status } };
+    if (dialog.activeRequest) return { ...active, request: { gesture: dialog.activeRequest.gesture, status: dialog.activeRequest.status, ...(dialog.activeRequest.note ? { note: dialog.activeRequest.note } : {}) } };
     return active;
   }
   return { screen: 'start' };

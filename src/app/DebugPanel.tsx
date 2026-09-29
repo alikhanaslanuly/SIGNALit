@@ -6,8 +6,8 @@ const gestures: GestureId[] = ['YES', 'NO', 'HELP', 'PAIN', 'TOILET', 'WATER'];
 
 /** Only mounted when Vite is in development mode and ?debug=1 is present. */
 export function DebugPanel({ engine, session }: { engine: MockEngine; session: SignalSession | null }) {
-  return <aside className="signal-debug" aria-label="Development controls">
-    <strong>Debug · mock engine</strong>
+  return <details className="signal-debug" aria-label="Development controls" open><summary>Debug · mock engine</summary>
+
     <button type="button" onClick={() => { void session?.start(); }}>Start mock</button>
     <div><button type="button" onClick={() => engine.emitCandidate('YES')}>YES candidate</button>
       <button type="button" onClick={() => engine.emitHolding('YES', 0.5)}>YES holding</button></div>
@@ -19,5 +19,5 @@ export function DebugPanel({ engine, session }: { engine: MockEngine; session: S
       <button type="button" onClick={() => engine.emitHint('EXPECTED_GESTURES')}>Context hint</button></div>
     <div><button type="button" onClick={() => session?.startTraining()}>Practice mode</button>
       <button type="button" onClick={() => session?.enterDialog()}>Live dialog</button></div>
-  </aside>;
+  </details>;
 }

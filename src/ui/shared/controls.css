@@ -1,0 +1,6 @@
+.signal-control-group { display: inline-flex; align-items: stretch; gap: 3px; padding: 3px; border: 1px solid var(--border, #dce4e9); border-radius: 7px; background: var(--canvas, #f3f6f8); }
+.signal-control-button { min-width: 44px; min-height: 44px; padding: 8px 11px; border: 0; border-radius: 5px; background: transparent; color: var(--ink, #172e3b); font: inherit; font-size: .88rem; font-weight: 750; cursor: pointer; }
+.signal-control-button[aria-pressed="true"] { background: var(--surface, #fff); color: var(--accent, #096f73); box-shadow: 0 2px 7px rgba(45, 42, 39, .12); }
+.signal-control-button:focus-visible { outline: 3px solid var(--signal-focus, #315f82); outline-offset: 2px; }
+.signal-theme-toggle .signal-control-button { display: inline-flex; align-items: center; gap: 5px; }
+@media (max-width: 680px) { .signal-theme-toggle .signal-control-button span { display: none; } .signal-control-button { min-width: 42px; } }

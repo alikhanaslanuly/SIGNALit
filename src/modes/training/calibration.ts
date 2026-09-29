@@ -1,4 +1,5 @@
 import type { GestureId } from '../../core/gestures';
+import { DIAGNOSTIC_CONFIG as quality } from '../../core/errors/config';
 import type { HandFeatures } from '../../core/vision/types';
 
 export interface CalibrationProfile {
@@ -33,18 +34,31 @@ export class CalibrationSession {
   get progress(): number { return this.completed ? 1 : Math.min(1, Math.max(0, this.elapsed / 10000)); }
   private elapsed = 0;
 
+  private lastSampleAt: number | null = null;
+  failed = false;
+  quality: 'missing' | 'closer' | 'farther' | 'still' | 'pose' | 'good' = 'missing';
   update(features: HandFeatures | null, gesture: GestureId | null, nowMs: number): void {
-    if (this.completed) return;
-    this.elapsed = Math.max(0, nowMs - this.startedAt);
-    this.target = this.elapsed < 5000 ? 'YES' : 'NO';
-    if (features && features.speed <= 0.25 && gesture === this.target) {
-      (this.target === 'YES' ? this.yes : this.no).push(features);
+    if (this.completed || this.failed) return;
+    if (nowMs - this.startedAt > 90000) { this.failed = true; return; }
+    const finite = features && [features.handSize, features.speed, features.brightness, features.palmFacing,
+      features.edgeMargin, features.thumbAngleDeg, ...Object.values(features.fingerExt)].every(Number.isFinite);
+    this.quality = !finite ? 'missing' : features.handSize < quality.minHandSize ? 'closer'
+      : features.handSize > quality.maxHandSize ? 'farther'
+      : features.speed > 0.25 || features.edgeMargin < quality.minEdgeMargin || features.brightness < quality.minBrightness || features.palmFacing < quality.minPalmFacing ? 'still'
+      : gesture !== this.target ? 'pose' : 'good';
+    if (this.quality !== 'good' || !features) { this.lastSampleAt = null; return; }
+    const delta = this.lastSampleAt === null ? 0 : Math.min(200, Math.max(0, nowMs - this.lastSampleAt));
+    this.lastSampleAt = nowMs;
+    (this.target === 'YES' ? this.yes : this.no).push(features);
+    this.elapsed += delta;
+    if (this.target === 'YES' && this.elapsed >= 5000 && this.yes.length >= 20) {
+      this.target = 'NO'; this.lastSampleAt = null;
     }
-    if (this.elapsed >= 10000) this.completed = true;
+    if (this.elapsed >= 10000 && this.yes.length >= 20 && this.no.length >= 20) this.completed = true;
   }
 
   get profile(): CalibrationProfile {
-    if (!this.yes.length || !this.no.length) return DEFAULT_CALIBRATION_PROFILE;
+    if (!this.completed || this.yes.length < 20 || this.no.length < 20) return DEFAULT_CALIBRATION_PROFILE;
     const all = [...this.yes, ...this.no];
     return {
       calibrated: true,

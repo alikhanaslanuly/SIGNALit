@@ -1,7 +1,7 @@
 import type { GestureId, SignalMessage, Status } from '../../contracts';
 
 export type DialogPhase = 'IDLE' | 'WAITING_YES_NO' | 'REQUEST_CONFIRMATION' | 'CANCEL_WINDOW';
-export interface ActiveRequest { id: string; gesture: GestureId; status: Status; ts: number }
+export interface ActiveRequest { id: string; gesture: GestureId; status: Status; ts: number; note?: 'COMING' | 'WAIT' }
 export interface DialogState {
   room: string;
   phase: DialogPhase;
@@ -14,7 +14,7 @@ export interface DialogState {
 export type DialogEvent =
   | { type: 'QUESTION'; questionId: string; now: number }
   | { type: 'GESTURE'; gesture: GestureId; now: number; messageId: string }
-  | { type: 'STATUS'; requestId: string; status: Status | 'CANCELLED'; now: number }
+  | { type: 'STATUS'; requestId: string; status: Status | 'CANCELLED'; now: number; note?: 'COMING' | 'WAIT' }
   | { type: 'TICK'; now: number };
 export interface DialogTransition { state: DialogState; messages: SignalMessage[] }
 
@@ -41,8 +41,12 @@ export function transitionDialog(state: DialogState, event: DialogEvent): Dialog
       if (state.activeRequest.status === 'COMPLETED') return { state, messages: noMessages };
       return { state: { ...state, activeRequest: null, phase: state.phase === 'CANCEL_WINDOW' ? resumedPhase(state) : state.phase, cancelUntil: null }, messages: noMessages };
     }
-    if (rank(event.status) <= rank(state.activeRequest.status)) return { state, messages: noMessages };
-    return { state: { ...state, activeRequest: { ...state.activeRequest, status: event.status },
+    if (rank(event.status) < rank(state.activeRequest.status)) return { state, messages: noMessages };
+    if (rank(event.status) === rank(state.activeRequest.status)) {
+      if (!event.note || state.activeRequest.note === event.note) return { state, messages: noMessages };
+      return { state: { ...state, activeRequest: { ...state.activeRequest, note: event.note } }, messages: noMessages };
+    }
+    return { state: { ...state, activeRequest: { ...state.activeRequest, status: event.status, ...(event.note ? { note: event.note } : {}) },
       ...(event.status === 'COMPLETED' && state.phase === 'CANCEL_WINDOW'
         ? { phase: resumedPhase(state), cancelUntil: null } : {}) }, messages: noMessages };
   }

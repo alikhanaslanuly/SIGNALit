@@ -2,3 +2,6 @@
 .signal-preview-tools button { text-align: left; border: 0; background: #e4f2f0; color: #173941; border-radius: 6px; padding: 7px 9px; cursor: pointer; }
 .signal-preview-tools button:hover { background: #bce1db; }
 @media (max-width: 800px) { .signal-preview-tools { position: static; max-height: none; flex-direction: row; flex-wrap: wrap; margin: 10px; } }
+.signal-preview-tools { position:static; flex-direction:row; flex-wrap:wrap; max-height:none; margin:12px; box-shadow:none; }.signal-preview-tools strong { padding:8px; }.camera-placeholder { justify-content:flex-end; padding-bottom:16px; }.camera-placeholder>span { display:none; }
+
+.signal-preview-tools { color:#173941; }

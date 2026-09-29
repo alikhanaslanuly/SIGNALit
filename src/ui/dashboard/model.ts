@@ -2,11 +2,14 @@ import type { GestureId, SignalMessage, Status } from '../../contracts';
 
 export interface NurseRequest {
   id: string;
+  patientId?: string;
   ts: number;
   room: string;
   gesture: 'HELP' | 'PAIN' | 'TOILET' | 'WATER';
   status: Status | 'CANCELLED';
   completedAt?: number;
+  acknowledgedAt?: number;
+  note?: 'COMING' | 'WAIT';
 }
 export interface DashboardState {
   requests: NurseRequest[];
@@ -25,15 +28,18 @@ export function applyDashboardMessage(state: DashboardState, message: SignalMess
   const seenIds = [...state.seenIds.slice(-499), message.id];
   if (message.kind === 'REQUEST' && isRequest(message.payload.request)) {
     return { ...state, seenIds, requests: [...state.requests, {
-      id: message.id, ts: message.ts, room: message.room, gesture: message.payload.request, status: 'PENDING',
+      id: message.id, patientId: typeof message.payload.patientId === 'string' ? message.payload.patientId : undefined, ts: message.ts, room: message.room, gesture: message.payload.request, status: isStatus(message.payload.status) ? message.payload.status : 'PENDING',
+      ...(message.payload.note === 'COMING' || message.payload.note === 'WAIT' ? { note: message.payload.note } : {}),
     }] };
   }
   if (message.kind === 'STATUS' && typeof message.payload.requestId === 'string' && isStatus(message.payload.status)) {
     return { ...state, seenIds, requests: state.requests.map(request =>
       request.id === message.payload.requestId &&
         !(request.status === 'COMPLETED' && message.payload.status === 'CANCELLED') &&
-        statusRank(message.payload.status as NurseRequest['status']) > statusRank(request.status)
+        statusRank(message.payload.status as NurseRequest['status']) >= statusRank(request.status)
         ? { ...request, status: message.payload.status as NurseRequest['status'],
+            ...(message.payload.note === 'COMING' || message.payload.note === 'WAIT' ? { note: message.payload.note } : {}),
+            ...(message.payload.status === 'ACKNOWLEDGED' ? { acknowledgedAt: request.acknowledgedAt ?? message.ts } : {}),
             ...(message.payload.status === 'COMPLETED' ? { completedAt: Math.max(request.ts, message.ts) } : {}) } : request) };
   }
   if (message.kind === 'QUESTION' && typeof message.payload.questionId === 'string' ||
