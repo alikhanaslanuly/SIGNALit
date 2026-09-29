@@ -1,0 +1,146 @@
+[
+  {
+    "expected": "YES",
+    "participantId": "anonymous-4",
+    "frame": {
+      "landmarks": [],
+      "worldLandmarks": [],
+      "handedness": "Right",
+      "handednessScore": 0.98,
+      "timestampMs": 0,
+      "width": 640,
+      "height": 480,
+      "brightness": 0.52
+    },
+    "features": {
+      "fingerExt": { "thumb": 0.97, "index": 0.03, "middle": 0.04, "ring": 0.03, "pinky": 0.03 },
+      "thumbAngleDeg": 10.0,
+      "palmFacing": 0.95,
+      "handSize": 0.26,
+      "center": { "x": 0.55, "y": 0.48 },
+      "edgeMargin": 0.28,
+      "speed": 0.01,
+      "brightness": 0.52
+    }
+  },
+  {
+    "expected": "NO",
+    "participantId": "anonymous-4",
+    "frame": {
+      "landmarks": [],
+      "worldLandmarks": [],
+      "handedness": "Right",
+      "handednessScore": 0.97,
+      "timestampMs": 0,
+      "width": 640,
+      "height": 480,
+      "brightness": 0.51
+    },
+    "features": {
+      "fingerExt": { "thumb": 0.96, "index": 0.04, "middle": 0.03, "ring": 0.04, "pinky": 0.03 },
+      "thumbAngleDeg": 170.0,
+      "palmFacing": 0.93,
+      "handSize": 0.25,
+      "center": { "x": 0.54, "y": 0.49 },
+      "edgeMargin": 0.27,
+      "speed": 0.02,
+      "brightness": 0.51
+    }
+  },
+  {
+    "expected": "HELP",
+    "participantId": "anonymous-4",
+    "frame": {
+      "landmarks": [],
+      "worldLandmarks": [],
+      "handedness": "Left",
+      "handednessScore": 0.96,
+      "timestampMs": 0,
+      "width": 640,
+      "height": 480,
+      "brightness": 0.53
+    },
+    "features": {
+      "fingerExt": { "thumb": 0.95, "index": 0.97, "middle": 0.96, "ring": 0.97, "pinky": 0.94 },
+      "thumbAngleDeg": 42.0,
+      "palmFacing": 0.94,
+      "handSize": 0.27,
+      "center": { "x": 0.49, "y": 0.51 },
+      "edgeMargin": 0.26,
+      "speed": 0.01,
+      "brightness": 0.53
+    }
+  },
+  {
+    "expected": "PAIN",
+    "participantId": "anonymous-4",
+    "frame": {
+      "landmarks": [],
+      "worldLandmarks": [],
+      "handedness": "Right",
+      "handednessScore": 0.97,
+      "timestampMs": 0,
+      "width": 640,
+      "height": 480,
+      "brightness": 0.50
+    },
+    "features": {
+      "fingerExt": { "thumb": 0.04, "index": 0.04, "middle": 0.03, "ring": 0.03, "pinky": 0.03 },
+      "thumbAngleDeg": 90.0,
+      "palmFacing": 0.91,
+      "handSize": 0.21,
+      "center": { "x": 0.56, "y": 0.52 },
+      "edgeMargin": 0.24,
+      "speed": 0.01,
+      "brightness": 0.50
+    }
+  },
+  {
+    "expected": "TOILET",
+    "participantId": "anonymous-4",
+    "frame": {
+      "landmarks": [],
+      "worldLandmarks": [],
+      "handedness": "Left",
+      "handednessScore": 0.95,
+      "timestampMs": 0,
+      "width": 640,
+      "height": 480,
+      "brightness": 0.52
+    },
+    "features": {
+      "fingerExt": { "thumb": 0.04, "index": 0.97, "middle": 0.04, "ring": 0.03, "pinky": 0.04 },
+      "thumbAngleDeg": 86.0,
+      "palmFacing": 0.93,
+      "handSize": 0.26,
+      "center": { "x": 0.48, "y": 0.49 },
+      "edgeMargin": 0.26,
+      "speed": 0.01,
+      "brightness": 0.52
+    }
+  },
+  {
+    "expected": "WATER",
+    "participantId": "anonymous-4",
+    "frame": {
+      "landmarks": [],
+      "worldLandmarks": [],
+      "handedness": "Right",
+      "handednessScore": 0.97,
+      "timestampMs": 0,
+      "width": 640,
+      "height": 480,
+      "brightness": 0.51
+    },
+    "features": {
+      "fingerExt": { "thumb": 0.04, "index": 0.96, "middle": 0.96, "ring": 0.94, "pinky": 0.04 },
+      "thumbAngleDeg": 83.0,
+      "palmFacing": 0.95,
+      "handSize": 0.28,
+      "center": { "x": 0.55, "y": 0.50 },
+      "edgeMargin": 0.27,
+      "speed": 0.02,
+      "brightness": 0.51
+    }
+  }
+]
