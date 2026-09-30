@@ -32,6 +32,7 @@ export interface Request {
 export interface DialogEvent {
   id: string;
   patientId: string;
+  room?: string;
   requestId: string | null;
   kind: 'QUESTION' | 'ANSWER';
   questionId: string;

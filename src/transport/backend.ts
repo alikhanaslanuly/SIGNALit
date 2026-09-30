@@ -110,9 +110,10 @@ export class BackendTransport implements Transport {
       return;
     }
     if ((event === 'QUESTION_CREATED' || event === 'ANSWER_CREATED') && typeof value.id === 'string' && typeof value.patientId === 'string' && typeof value.questionId === 'string' && typeof value.createdAt === 'string') {
+      if (this.patientId && value.patientId !== this.patientId) return;
       const kind = event === 'QUESTION_CREATED' ? 'QUESTION' : 'ANSWER';
       if (kind === 'ANSWER' && value.answer !== 'YES' && value.answer !== 'NO') return;
-      const room = typeof value.room === 'string' ? value.room : '';
+      const room = typeof value.room === 'string' && value.room ? value.room : (this.options.room ?? '');
       const message = this.dialogMessage(value as unknown as DialogRecord, kind, `dialog:${value.id}`);
       this.deliver({ ...message, room }, `dialog:${value.id}`);
     }

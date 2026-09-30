@@ -219,7 +219,7 @@ export class SignalSession {
   }
 
   private receive(message: SignalMessage): void {
-    if (message.room !== this.snapshot.dialog.room) return;
+    if (message.room && this.snapshot.dialog.room && message.room !== this.snapshot.dialog.room) return;
     const dashboard = applyDashboardMessage(this.snapshot.dashboard, message);
     let dialog = this.snapshot.dialog;
     if (message.kind === 'REQUEST' && dialog.activeRequest && typeof message.payload.localRequestId === 'string' && dialog.activeRequest.id === message.payload.localRequestId) {

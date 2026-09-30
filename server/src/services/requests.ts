@@ -77,14 +77,14 @@ export function createRequestService(db: Database.Database, patients: { find(id:
       return find(id);
     },
     addQuestion(patientId: string, questionId: string): DialogEvent {
-      patients.find(patientId);
-      const event: DialogEvent = { id: randomUUID(), patientId, requestId: null, kind: 'QUESTION', questionId, answer: null, createdAt: new Date().toISOString() };
+      const patient = patients.find(patientId);
+      const event: DialogEvent = { id: randomUUID(), patientId, room: patient.room, requestId: null, kind: 'QUESTION', questionId, answer: null, createdAt: new Date().toISOString() };
       db.prepare('INSERT INTO dialog_events (id, patient_id, kind, question_id, created_at) VALUES (?, ?, ?, ?, ?)').run(event.id, patientId, event.kind, event.questionId, event.createdAt);
       return event;
     },
     addAnswer(patientId: string, questionId: string, answer: 'YES' | 'NO'): DialogEvent {
-      patients.find(patientId);
-      const event: DialogEvent = { id: randomUUID(), patientId, requestId: null, kind: 'ANSWER', questionId, answer, createdAt: new Date().toISOString() };
+      const patient = patients.find(patientId);
+      const event: DialogEvent = { id: randomUUID(), patientId, room: patient.room, requestId: null, kind: 'ANSWER', questionId, answer, createdAt: new Date().toISOString() };
       db.prepare('INSERT INTO dialog_events (id, patient_id, kind, question_id, answer, created_at) VALUES (?, ?, ?, ?, ?, ?)').run(event.id, patientId, event.kind, event.questionId, event.answer, event.createdAt);
       return event;
     },

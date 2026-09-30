@@ -52,7 +52,7 @@ function Metrics() { const { patients, requests } = useData(); const { t } = use
 function RequestsPage({ overview }: { overview: boolean }) {
   const { t, all } = useCopy(); const data = useData(); const [filter, setFilter] = useState('open'); const [search, setSearch] = useState(''); const [selected, setSelected] = useState<string | null>(null);
   const names = new Map(data.patients.map(patient => [patient.id, patient.displayName]));
-  const visible = data.requests.filter(request => (filter === 'all' || filter === 'open' && isOpen(request) || filter === 'urgent' && isOpen(request) && isUrgent(request) || filter === 'acknowledged' && request.status === 'ACKNOWLEDGED' || filter === 'completed' && request.status === 'COMPLETED') && `${names.get(request.patientId) ?? ''} ${request.room} ${request.type} ${all.gestures[request.type].label}`.toLowerCase().includes(search.toLowerCase())).sort((a, b) => Number(isOpen(b)) - Number(isOpen(a)) || Number(isUrgent(b)) - Number(isUrgent(a)) || Date.parse(a.createdAt) - Date.parse(b.createdAt));
+  const visible = data.requests.filter(request => (filter === 'all' || filter === 'open' && request.status === 'PENDING' || filter === 'urgent' && request.status === 'PENDING' && isUrgent(request) || filter === 'acknowledged' && request.status === 'ACKNOWLEDGED' || filter === 'completed' && request.status === 'COMPLETED') && `${names.get(request.patientId) ?? ''} ${request.room} ${request.type} ${all.gestures[request.type].label}`.toLowerCase().includes(search.toLowerCase())).sort((a, b) => Number(b.status === 'PENDING') - Number(a.status === 'PENDING') || Number(isUrgent(b)) - Number(isUrgent(a)) || Date.parse(a.createdAt) - Date.parse(b.createdAt));
   const current = data.requests.find(request => request.id === selected) ?? visible[0];
   useEffect(() => { if (!selected && current) setSelected(current.id); }, [selected, current?.id]);
   return <section><Heading title={overview ? t.station : t.requests} subtitle={overview ? t.stationSubtitle : t.queueSubtitle} action={<button onClick={data.refresh}>{t.refresh}</button>} />{overview && <><Metrics /><p className="muted">{t.noPresence}</p></>}
@@ -94,7 +94,20 @@ export function PatientForm({ patient, onSaved, onCancel }: { patient?: PatientR
 export function SessionReady({ patient }: { patient: PatientRecord }) {
   const { t } = useCopy(); const patientUrl = new URL(patientLink(patient.id), window.location.origin).href;
   const staffPath = `/dashboard/requests${presentation() ? `?demo=1&patientId=${encodeURIComponent(patient.id)}` : ''}`;
-  return <section className="session-ready"><strong>✓ {t.sessionReady}</strong><p>{patient.displayName} · {t.room} {patient.room}</p><a className="staff-primary" href={patientLink(patient.id)}>{t.openPatient}</a><SessionLinks patientUrl={patientUrl} staffUrl={new URL(staffPath,window.location.origin).href}/><a href={staffPath}>{t.demoQueue} →</a><a href={`/dashboard/quality${presentation() ? `?demo=1&patientId=${encodeURIComponent(patient.id)}` : ''}`}>{t.demoCheck} →</a><a href={`${patientLink(patient.id)}&bedside=1`}>{t.bedside} →</a></section>;
+  return <section className="session-ready">
+    <div className="session-ready__header">
+      <strong>✓ {t.sessionReady}</strong>
+      <p>{patient.displayName} · {t.room} {patient.room}</p>
+    </div>
+    <div>
+      <a className="session-btn-main" href={patientLink(patient.id)}>{t.openPatient} ↗</a>
+    </div>
+    <SessionLinks patientUrl={patientUrl} />
+    <div className="session-ready__actions">
+      <a className="session-btn-action" href={staffPath}>{t.demoQueue} →</a>
+      <a className="session-btn-action" href={`/dashboard/quality${presentation() ? `?demo=1&patientId=${encodeURIComponent(patient.id)}` : ''}`}>{t.demoCheck} →</a>
+    </div>
+  </section>;
 }
 function PatientDetailPage({ patientId }: { patientId: string }) {
   const data = useData(); const { t, all, locale } = useCopy(); const [editing, setEditing] = useState(false); const [error, setError] = useState(false); const [busy, setBusy] = useState(false); const patient = data.patients.find(value => value.id === patientId); const requests = data.requests.filter(request => request.patientId === patientId); const last = [...requests.flatMap(request => [request.createdAt, request.acknowledgedAt, request.completedAt].filter((value): value is string => Boolean(value))), ...data.dialog.filter(event => event.patientId === patientId).map(event => event.createdAt)].sort().at(-1);
