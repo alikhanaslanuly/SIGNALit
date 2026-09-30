@@ -100,7 +100,7 @@ export function SessionReady({ patient }: { patient: PatientRecord }) {
       <p>{patient.displayName} · {t.room} {patient.room}</p>
     </div>
     <div>
-      <a className="session-btn-main" href={patientLink(patient.id)}>{t.openPatient} ↗</a>
+      <a className="session-btn-main" href={patientLink(patient.id)} target="_blank" rel="noopener noreferrer">{t.openPatient} ↗</a>
     </div>
     <SessionLinks patientUrl={patientUrl} />
     <div className="session-ready__actions">
