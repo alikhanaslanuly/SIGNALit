@@ -1,7 +1,7 @@
 import type { GestureId, HandFeatures, Hint, Recognition, RuntimeEngine, SignalMessage, Status } from '../contracts';
 import { playFeedbackSound, speakFeedback } from '../audio/feedback';
 import { classifyGesture } from '../core/gestures';
-import { initialDialogState, transitionDialog, expectedDialogGestures, QUESTIONS, type DialogState } from '../modes/dialog';
+import { initialDialogState, transitionDialog, expectedDialogGestures, QUESTIONS, getQuestion, type DialogState } from '../modes/dialog';
 import { CalibrationSession, TrainingSession, saveBestTrainingResult, type TrainingResult, type TrainingState } from '../modes/training';
 import { applyDashboardMessage, emptyDashboardState, type DashboardState } from '../ui/dashboard/model';
 import { getText, type Locale } from '../ui/i18n';
@@ -234,6 +234,10 @@ export class SignalSession {
     if (message.kind === 'REQUEST') this.latestRequestTs = Math.max(this.latestRequestTs, message.ts);
     if (message.kind === 'QUESTION' && typeof message.payload.questionId === 'string') {
       dialog = transitionDialog(dialog, { type: 'QUESTION', questionId: message.payload.questionId, now: message.ts }).state;
+      if (this.audioEnabled && typeof window !== 'undefined') {
+        const questionText = getQuestion(message.payload.questionId, this.locale);
+        if (questionText) speakFeedback(questionText, this.locale);
+      }
     }
     if (message.kind === 'ANSWER' && message.payload.questionId === dialog.questionId) {
       dialog = { ...dialog, questionId: null, phase: 'IDLE' };
